@@ -1,0 +1,9 @@
+# Ultralytics dataset config. Unzip the app's "Export dataset" zip or your Roboflow export into ./datasets/pills
+path: datasets/pills
+train: images/train
+val: images/val
+test: images/test
+names:
+  0: tablet
+  1: capsule
+  2: box
