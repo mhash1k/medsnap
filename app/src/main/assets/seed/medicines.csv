@@ -1,0 +1,211 @@
+brand,generic,strength,form,kind,company,pieces_per_strip,strips_per_box,strip_price,unit_price,bangla_name,voice_aliases,price_verified
+Napa,Paracetamol,500 mg,TABLET,STRIP,Beximco,12,10,12.00,,নাপা,napa|nappa,false
+Napa Extra,Paracetamol + Caffeine,500 mg+65 mg,TABLET,STRIP,Beximco,12,10,30.00,,নাপা এক্সট্রা,napa extra,false
+Napa Extend,Paracetamol ER,665 mg,TABLET,STRIP,Beximco,12,10,24.00,,নাপা এক্সটেন্ড,,false
+Napa,Paracetamol,120 mg/5 ml,SYRUP,UNIT,Beximco,,,,35.00,নাপা সিরাপ,,false
+Napa Drops,Paracetamol,80 mg/ml,DROPS,UNIT,Beximco,,,,30.00,নাপা ড্রপ,,false
+Ace,Paracetamol,500 mg,TABLET,STRIP,Square,10,20,12.00,,এইস,ace|es|eis,false
+Ace Plus,Paracetamol + Caffeine,500 mg+65 mg,TABLET,STRIP,Square,10,12,25.00,,এইস প্লাস,ace plus,false
+Ace,Paracetamol,120 mg/5 ml,SYRUP,UNIT,Square,,,,35.00,এইস সিরাপ,,false
+Fast,Paracetamol,500 mg,TABLET,STRIP,Acme,10,10,10.00,,ফাস্ট,,false
+Renova,Paracetamol,500 mg,TABLET,STRIP,Opsonin,10,10,10.00,,রেনোভা,,false
+Seclo,Omeprazole,20 mg,CAPSULE,STRIP,Square,10,3,60.00,,সেকলো,seclo|seklo,false
+Seclo,Omeprazole,40 mg,CAPSULE,STRIP,Square,10,3,90.00,,সেকলো ৪০,,false
+Losectil,Omeprazole,20 mg,CAPSULE,STRIP,Eskayef,10,5,50.00,,লোসেকটিল,,false
+Omep,Omeprazole,20 mg,CAPSULE,STRIP,Drug International,10,5,45.00,,ওমেপ,,false
+Sergel,Esomeprazole,20 mg,CAPSULE,STRIP,Healthcare,10,5,70.00,,সারজেল,sergel|sarjel,false
+Sergel,Esomeprazole,40 mg,CAPSULE,STRIP,Healthcare,10,5,110.00,,সারজেল ৪০,,false
+Maxpro,Esomeprazole,20 mg,TABLET,STRIP,Renata,10,5,70.00,,ম্যাক্সপ্রো,maxpro|maxipro,false
+Maxpro,Esomeprazole,40 mg,TABLET,STRIP,Renata,10,5,100.00,,ম্যাক্সপ্রো ৪০,,false
+Nexum,Esomeprazole,20 mg,TABLET,STRIP,Square,10,5,70.00,,নেক্সাম,,false
+Esoral,Esomeprazole,20 mg,CAPSULE,STRIP,Eskayef,10,5,70.00,,ইসোরাল,,false
+Pantonix,Pantoprazole,20 mg,TABLET,STRIP,Incepta,10,5,50.00,,প্যান্টোনিক্স,,false
+Pantonix,Pantoprazole,40 mg,TABLET,STRIP,Incepta,10,5,70.00,,প্যান্টোনিক্স ৪০,,false
+Pantid,Pantoprazole,20 mg,TABLET,STRIP,Aristopharma,10,5,50.00,,প্যান্টিড,,false
+Rabe,Rabeprazole,20 mg,TABLET,STRIP,Incepta,10,5,70.00,,রাবে,,false
+Finix,Rabeprazole,20 mg,TABLET,STRIP,Opsonin,10,5,70.00,,ফিনিক্স,,false
+Neotack,Ranitidine,150 mg,TABLET,STRIP,Square,10,10,20.00,,নিওট্যাক,,false
+Famotack,Famotidine,20 mg,TABLET,STRIP,Square,10,10,20.00,,ফ্যামোট্যাক,,false
+Antacid Plus,Aluminium + Magnesium hydroxide,,TABLET,STRIP,Square,10,10,10.00,,এন্টাসিড,,false
+Entacyd Plus,Aluminium + Magnesium + Simethicone,,TABLET,STRIP,Square,10,10,15.00,,এন্টাসিড প্লাস,,false
+Flatameal DS,Aluminium + Magnesium + Simethicone,200 ml,SYRUP,UNIT,ACME,,,,95.00,ফ্ল্যাটামিল,,false
+Avlocid,Aluminium + Magnesium hydroxide,200 ml,SYRUP,UNIT,ACI,,,,80.00,এভলোসিড,,false
+Motigut,Domperidone,10 mg,TABLET,STRIP,Square,10,10,30.00,,মোটিগাট,,false
+Omidon,Domperidone,10 mg,TABLET,STRIP,Incepta,10,10,30.00,,ওমিডন,,false
+Omidon,Domperidone,5 mg/5 ml,SYRUP,UNIT,Incepta,,,,45.00,ওমিডন সিরাপ,,false
+Emistat,Ondansetron,8 mg,TABLET,STRIP,Incepta,10,5,100.00,,এমিস্ট্যাট,,false
+Ondan,Ondansetron,8 mg,TABLET,STRIP,Square,10,5,100.00,,অনডান,,false
+Fexo,Fexofenadine,120 mg,TABLET,STRIP,Square,10,5,90.00,,ফেক্সো,fexo|fexso,false
+Fexo,Fexofenadine,180 mg,TABLET,STRIP,Square,10,3,120.00,,ফেক্সো ১৮০,,false
+Fenadin,Fexofenadine,120 mg,TABLET,STRIP,Renata,10,5,80.00,,ফেনাডিন,,false
+Telfast,Fexofenadine,120 mg,TABLET,STRIP,Sanofi,10,3,100.00,,টেলফাস্ট,,false
+Alatrol,Cetirizine,10 mg,TABLET,STRIP,Square,10,10,30.00,,এলাট্রল,alatrol|alatrel,false
+Alatrol,Cetirizine,5 mg/5 ml,SYRUP,UNIT,Square,,,,40.00,এলাট্রল সিরাপ,,false
+Atrizin,Cetirizine,10 mg,TABLET,STRIP,Opsonin,10,10,25.00,,অ্যাট্রিজিন,,false
+Histacin,Chlorpheniramine,4 mg,TABLET,STRIP,Jayson,10,10,5.00,,হিস্টাসিন,,false
+Deslor,Desloratadine,5 mg,TABLET,STRIP,Square,10,5,50.00,,ডেসলর,,false
+Rupa,Rupatadine,10 mg,TABLET,STRIP,Square,10,5,100.00,,রুপা,,false
+Monas,Montelukast,10 mg,TABLET,STRIP,ACME,10,3,160.00,,মোনাস,monas|monus,false
+Monas,Montelukast,5 mg,TABLET,STRIP,ACME,10,3,120.00,,মোনাস ৫,,false
+Montene,Montelukast,10 mg,TABLET,STRIP,Beximco,10,3,160.00,,মন্টিন,,false
+Odmon,Montelukast,10 mg,TABLET,STRIP,Eskayef,10,3,150.00,,অডমন,,false
+Sultolin,Salbutamol,4 mg,TABLET,STRIP,Square,10,10,10.00,,সালটোলিন,,false
+Sultolin,Salbutamol,2 mg/5 ml,SYRUP,UNIT,Square,,,,30.00,সালটোলিন সিরাপ,,false
+Azmasol,Salbutamol,100 mcg,OTHER,UNIT,Beximco,,,,200.00,অ্যাজমাসল ইনহেলার,,false
+Doxiva,Doxofylline,200 mg,TABLET,STRIP,Square,10,5,80.00,,ডক্সিভা,,false
+Ambrox,Ambroxol,15 mg/5 ml,SYRUP,UNIT,Square,,,,60.00,অ্যামব্রক্স,,false
+Tusca,Dextromethorphan + Pseudoephedrine,100 ml,SYRUP,UNIT,Square,,,,85.00,টুসকা,,false
+Adovas,Herbal cough syrup,100 ml,SYRUP,UNIT,Square,,,,90.00,অ্যাডোভাস,,false
+Brodil,Salbutamol + Bromhexine,100 ml,SYRUP,UNIT,ACI,,,,45.00,ব্রডিল,,false
+Ciprocin,Ciprofloxacin,500 mg,TABLET,STRIP,Square,10,5,150.00,,সিপ্রোসিন,ciprocin|cipro,false
+Ciprocin,Ciprofloxacin,250 mg,TABLET,STRIP,Square,10,5,90.00,,সিপ্রোসিন ২৫০,,false
+Cipro-A,Ciprofloxacin,500 mg,TABLET,STRIP,ACME,10,5,140.00,,সিপ্রো এ,,false
+Ciprocin Eye Drops,Ciprofloxacin,0.3%,DROPS,UNIT,Square,,,,60.00,সিপ্রোসিন আই ড্রপ,,false
+Levoking,Levofloxacin,500 mg,TABLET,STRIP,Beximco,10,3,150.00,,লেভোকিং,,false
+Azithrocin,Azithromycin,500 mg,TABLET,STRIP,Beximco,3,3,105.00,,অ্যাজিথ্রোসিন,azithrocin|azithro,false
+Zimax,Azithromycin,500 mg,TABLET,STRIP,Square,3,3,105.00,,জিম্যাক্স,zimax|jimax,false
+Zimax,Azithromycin,200 mg/5 ml,SYRUP,UNIT,Square,,,,170.00,জিম্যাক্স সিরাপ,,false
+Azin,Azithromycin,500 mg,TABLET,STRIP,Eskayef,3,3,100.00,,অ্যাজিন,,false
+Tridosil,Azithromycin,500 mg,TABLET,STRIP,Incepta,3,3,100.00,,ট্রাইডোসিল,,false
+Cef-3,Cefixime,200 mg,CAPSULE,STRIP,Square,6,2,210.00,,সেফ থ্রি,cef three|cef 3,false
+Cef-3,Cefixime,100 mg/5 ml,SYRUP,UNIT,Square,,,,180.00,সেফ থ্রি সিরাপ,,false
+Triocim,Cefixime,200 mg,CAPSULE,STRIP,Eskayef,6,2,200.00,,ট্রায়োসিম,,false
+Cefotil,Cefuroxime,500 mg,TABLET,STRIP,Square,4,4,240.00,,সেফোটিল,,false
+Kilbac,Cefuroxime,500 mg,TABLET,STRIP,Incepta,4,4,230.00,,কিলব্যাক,,false
+Moxacil,Amoxicillin,500 mg,CAPSULE,STRIP,Square,10,5,60.00,,মক্সাসিল,moxacil|moxasil,false
+Moxacil,Amoxicillin,125 mg/5 ml,SYRUP,UNIT,Square,,,,60.00,মক্সাসিল সিরাপ,,false
+Tycil,Amoxicillin,500 mg,CAPSULE,STRIP,Beximco,10,5,60.00,,টাইসিল,,false
+Fluclox,Flucloxacillin,500 mg,CAPSULE,STRIP,Square,10,5,110.00,,ফ্লুক্লক্স,,false
+Flubex,Flucloxacillin,500 mg,CAPSULE,STRIP,Beximco,10,5,100.00,,ফ্লুবেক্স,,false
+Doxicap,Doxycycline,100 mg,CAPSULE,STRIP,Square,10,5,40.00,,ডক্সিক্যাপ,,false
+Filmet,Metronidazole,400 mg,TABLET,STRIP,Beximco,10,10,20.00,,ফিলমেট,filmet|filmed,false
+Amodis,Metronidazole,400 mg,TABLET,STRIP,Square,10,10,20.00,,অ্যামোডিস,amodis,false
+Amodis,Metronidazole,200 mg/5 ml,SYRUP,UNIT,Square,,,,45.00,অ্যামোডিস সিরাপ,,false
+Flagyl,Metronidazole,400 mg,TABLET,STRIP,Sanofi,10,10,25.00,,ফ্ল্যাজিল,,false
+Nitrofurantoin,Nitrofurantoin,100 mg,CAPSULE,STRIP,Opsonin,10,3,80.00,,,,false
+Flugal,Fluconazole,150 mg,CAPSULE,STRIP,Square,1,10,40.00,,ফ্লুগাল,,false
+Flugal,Fluconazole,50 mg,CAPSULE,STRIP,Square,10,3,120.00,,ফ্লুগাল ৫০,,false
+Itra,Itraconazole,100 mg,CAPSULE,STRIP,Incepta,4,5,100.00,,ইট্রা,,false
+Almex,Albendazole,400 mg,TABLET,STRIP,Square,1,50,10.00,,আলমেক্স,almex|almax,false
+Ben-A,Albendazole,400 mg,TABLET,STRIP,Beximco,1,50,10.00,,বেন এ,,false
+Ermox,Mebendazole,100 mg,TABLET,STRIP,Square,6,10,20.00,,এরমক্স,,false
+Algin,Tiemonium,50 mg,TABLET,STRIP,Square,10,10,50.00,,অ্যালজিন,,false
+Viscral,Tiemonium,50 mg,TABLET,STRIP,Beximco,10,10,50.00,,ভিসক্রাল,,false
+Tufnil,Tolfenamic acid,200 mg,TABLET,STRIP,Eskayef,10,5,100.00,,টাফনিল,,false
+Rolac,Ketorolac,10 mg,TABLET,STRIP,Renata,10,5,150.00,,রোলাক,,false
+Clofenac,Diclofenac,50 mg,TABLET,STRIP,Square,10,10,10.00,,ক্লোফেনাক,,false
+Clofenac SR,Diclofenac SR,100 mg,TABLET,STRIP,Square,10,10,20.00,,ক্লোফেনাক এসআর,,false
+Clofenac Gel,Diclofenac,1%,CREAM,UNIT,Square,,,,60.00,ক্লোফেনাক জেল,,false
+Naprosyn,Naproxen,500 mg,TABLET,STRIP,Radiant,10,5,120.00,,নেপ্রোসিন,,false
+Xeldrin,Omeprazole,20 mg,CAPSULE,STRIP,ACME,10,5,50.00,,জেলড্রিন,,false
+Neuro-B,Vitamin B1 B6 B12,,TABLET,STRIP,Square,10,10,60.00,,নিউরো বি,,false
+Bextram Gold,Multivitamin + Minerals,,TABLET,STRIP,Beximco,10,3,100.00,,বেক্সট্রাম গোল্ড,,false
+Filwel Gold,Multivitamin + Minerals,,TABLET,STRIP,Square,10,3,100.00,,ফিলওয়েল গোল্ড,,false
+Aristovit-B,Vitamin B complex,,TABLET,STRIP,Aristopharma,10,10,20.00,,অ্যারিস্টোভিট,,false
+Calbo D,Calcium + Vitamin D3,500 mg+200 IU,TABLET,STRIP,Square,15,2,165.00,,ক্যালবো ডি,calbo d|calbo,false
+Calbo,Calcium carbonate,500 mg,TABLET,STRIP,Square,15,2,120.00,,ক্যালবো,,false
+Ostocal D,Calcium + Vitamin D3,500 mg+200 IU,TABLET,STRIP,Radiant,15,2,165.00,,অস্টোক্যাল ডি,,false
+Coralcal D,Calcium + Vitamin D3,500 mg+200 IU,TABLET,STRIP,Incepta,15,2,150.00,,কোরালক্যাল ডি,,false
+Aristocal D,Calcium + Vitamin D3,500 mg+200 IU,TABLET,STRIP,Aristopharma,15,2,150.00,,অ্যারিস্টোক্যাল ডি,,false
+D-Rise,Vitamin D3,20000 IU,CAPSULE,STRIP,Beximco,10,1,350.00,,ডি রাইজ,,false
+Ceevit,Vitamin C,250 mg,TABLET,STRIP,Square,15,10,30.00,,সিভিট,,false
+Zinc B,Zinc + Vitamin B,,TABLET,STRIP,Square,10,10,30.00,,জিংক বি,,false
+Zincovit,Zinc sulphate,10 mg/5 ml,SYRUP,UNIT,Incepta,,,,55.00,জিংকোভিট,,false
+Folison,Folic acid,5 mg,TABLET,STRIP,Square,10,10,20.00,,ফলিসন,,false
+Zif,Iron + Folic acid + Zinc,,CAPSULE,STRIP,Square,10,3,40.00,,জিফ,,false
+Feroglobin,Iron + Multivitamin,,CAPSULE,STRIP,Vitabiotics,15,2,400.00,,ফেরোগ্লোবিন,,false
+Orsaline-N,Oral rehydration salts,sachet,OTHER,UNIT,SMC,,,,6.00,ওরস্যালাইন,orsaline|saline|orsaline n,false
+Amdocal,Amlodipine,5 mg,TABLET,STRIP,Beximco,10,3,60.00,,অ্যামডোক্যাল,,false
+Camlodin,Amlodipine,5 mg,TABLET,STRIP,Square,10,3,60.00,,ক্যামলোডিন,,false
+Losart,Losartan,50 mg,TABLET,STRIP,Beximco,10,3,100.00,,লোসার্ট,,false
+Angilock,Losartan,50 mg,TABLET,STRIP,Square,10,3,100.00,,অ্যানজিলক,,false
+Osartil,Losartan,50 mg,TABLET,STRIP,Incepta,10,3,100.00,,ওসারটিল,,false
+Angilock Plus,Losartan + Hydrochlorothiazide,50 mg+12.5 mg,TABLET,STRIP,Square,10,3,120.00,,অ্যানজিলক প্লাস,,false
+Bislol,Bisoprolol,5 mg,TABLET,STRIP,Incepta,10,3,80.00,,বিসলল,,false
+Concor,Bisoprolol,5 mg,TABLET,STRIP,Merck,10,3,100.00,,কনকর,,false
+Tenoren,Atenolol,50 mg,TABLET,STRIP,ACI,10,10,30.00,,টেনোরেন,,false
+Nidocard,Glyceryl trinitrate,2.6 mg,TABLET,STRIP,Square,10,3,60.00,,নিডোকার্ড,,false
+Ecosprin,Aspirin,75 mg,TABLET,STRIP,ACME,10,5,6.00,,ইকোস্প্রিন,,false
+Clopid,Clopidogrel,75 mg,TABLET,STRIP,Square,10,3,100.00,,ক্লোপিড,,false
+Lopirel,Clopidogrel,75 mg,TABLET,STRIP,Incepta,10,3,100.00,,লোপিরেল,,false
+Atova,Atorvastatin,10 mg,TABLET,STRIP,Beximco,10,3,100.00,,অ্যাটোভা,,false
+Atova,Atorvastatin,20 mg,TABLET,STRIP,Beximco,10,3,160.00,,অ্যাটোভা ২০,,false
+Rosuva,Rosuvastatin,10 mg,TABLET,STRIP,Square,10,3,150.00,,রসুভা,,false
+Comet,Metformin,500 mg,TABLET,STRIP,Square,10,10,40.00,,কমেট,,false
+Comet XR,Metformin XR,500 mg,TABLET,STRIP,Square,10,5,60.00,,কমেট এক্সআর,,false
+Glucomin,Metformin,850 mg,TABLET,STRIP,Incepta,10,5,50.00,,গ্লুকোমিন,,false
+Comprid,Gliclazide,80 mg,TABLET,STRIP,Square,10,5,80.00,,কমপ্রিড,,false
+Diamicron MR,Gliclazide MR,30 mg,TABLET,STRIP,Servier,10,3,120.00,,ডায়ামাইক্রন,,false
+Secrin,Glimepiride,2 mg,TABLET,STRIP,Healthcare,10,3,80.00,,সিক্রিন,,false
+Glipita,Sitagliptin,50 mg,TABLET,STRIP,Square,10,3,350.00,,গ্লিপিটা,,false
+Linita,Linagliptin,5 mg,TABLET,STRIP,Incepta,10,3,400.00,,লিনিটা,,false
+Empa,Empagliflozin,10 mg,TABLET,STRIP,Incepta,10,3,400.00,,এমপা,,false
+Thyrox,Levothyroxine,50 mcg,TABLET,STRIP,Renata,10,10,25.00,,থাইরক্স,,false
+Insulatard,Insulin isophane,100 IU/ml,INJECTION,UNIT,Novo Nordisk,,,,480.00,ইনসুলেটার্ড,,false
+Mixtard 30,Insulin biphasic,100 IU/ml,INJECTION,UNIT,Novo Nordisk,,,,480.00,মিক্সটার্ড,,false
+Ceftron,Ceftriaxone,1 g,INJECTION,UNIT,Square,,,,210.00,সেফট্রন,ceftron|ceftrone,false
+Ceftron,Ceftriaxone,500 mg,INJECTION,UNIT,Square,,,,140.00,সেফট্রন ৫০০,,false
+Seclo IV,Omeprazole,40 mg,INJECTION,UNIT,Square,,,,120.00,সেকলো ইনজেকশন,,false
+Ondan Inj,Ondansetron,8 mg/4 ml,INJECTION,UNIT,Square,,,,50.00,অনডান ইনজেকশন,,false
+Rolac Inj,Ketorolac,30 mg/ml,INJECTION,UNIT,Renata,,,,60.00,রোলাক ইনজেকশন,,false
+Water for Injection,Sterile water,5 ml,INJECTION,UNIT,Square,,,,10.00,পানি ইনজেকশন,,false
+Dexonex,Dexamethasone,5 mg/ml,INJECTION,UNIT,Square,,,,25.00,ডেক্সোনেক্স,,false
+Betnovate-N,Betamethasone + Neomycin,20 g,CREAM,UNIT,GSK,,,,110.00,বেটনোভেট এন,,false
+Fungidal,Clotrimazole,1%,CREAM,UNIT,ACME,,,,60.00,ফাঙ্গিডাল,,false
+Afun,Terbinafine,1%,CREAM,UNIT,Beximco,,,,120.00,আফান,,false
+Neosporin,Neomycin + Polymyxin + Bacitracin,10 g,CREAM,UNIT,GSK,,,,150.00,নিওস্পোরিন,,false
+Burnol,Aminacrine,20 g,CREAM,UNIT,Square,,,,50.00,বার্নল,,false
+Dermasol,Clobetasol,0.05%,CREAM,UNIT,Square,,,,120.00,ডার্মাসল,,false
+Scabex,Permethrin,5%,CREAM,UNIT,Beximco,,,,150.00,স্ক্যাবেক্স,,false
+Moxiquin Eye Drops,Moxifloxacin,0.5%,DROPS,UNIT,Square,,,,120.00,মক্সিকুইন,,false
+Tobracin Eye Drops,Tobramycin,0.3%,DROPS,UNIT,Eskayef,,,,90.00,টোব্রাসিন,,false
+Otosporin,Polymyxin + Neomycin + Hydrocortisone,5 ml,DROPS,UNIT,GSK,,,,120.00,অটোস্পোরিন,,false
+Nasivion,Oxymetazoline,0.05%,DROPS,UNIT,Merck,,,,80.00,নাসিভিয়ন,,false
+Sinarest,Xylometazoline,0.1%,DROPS,UNIT,Square,,,,60.00,সিনারেস্ট,,false
+Lactulose,Lactulose,3.35 g/5 ml,SYRUP,UNIT,Square,,,,180.00,ল্যাকটুলোজ,,false
+Isobgol,Ispaghula husk,sachet,OTHER,UNIT,Square,,,,15.00,ইসবগুল,,false
+Normens,Norethisterone,5 mg,TABLET,STRIP,Square,10,3,60.00,,নরমেন্স,,false
+Femicon,Levonorgestrel + Ethinylestradiol,,TABLET,STRIP,SMC,28,1,30.00,,ফেমিকন,,false
+Gynobac,Probiotic,,CAPSULE,STRIP,Square,10,1,250.00,,গাইনোব্যাক,,false
+Probio,Probiotic,,CAPSULE,STRIP,Incepta,10,1,200.00,,প্রোবায়ো,,false
+Prednisolone,Prednisolone,5 mg,TABLET,STRIP,Square,10,10,10.00,,প্রেডনিসোলন,,false
+Deltasone,Prednisolone,5 mg,TABLET,STRIP,ACI,10,10,10.00,,ডেল্টাসোন,,false
+Oradexon,Dexamethasone,0.5 mg,TABLET,STRIP,Organon,10,10,10.00,,ওরাডেক্সন,,false
+Furocil,Furosemide,40 mg,TABLET,STRIP,Square,10,10,20.00,,ফুরোসিল,,false
+Spiro,Spironolactone,25 mg,TABLET,STRIP,Square,10,5,50.00,,স্পাইরো,,false
+Lumona,Montelukast,10 mg,TABLET,STRIP,Incepta,10,3,150.00,,লুমোনা,,false
+Ketotifen,Ketotifen,1 mg,TABLET,STRIP,Square,10,10,20.00,,কিটোটিফেন,,false
+Vertina,Betahistine,8 mg,TABLET,STRIP,Square,10,5,50.00,,ভার্টিনা,,false
+Stemetil,Prochlorperazine,5 mg,TABLET,STRIP,Sanofi,10,10,20.00,,স্টেমেটিল,,false
+Gabapin,Gabapentin,300 mg,CAPSULE,STRIP,Incepta,10,3,150.00,,গাবাপিন,,false
+Pregaba,Pregabalin,75 mg,CAPSULE,STRIP,Square,10,3,150.00,,প্রেগাবা,,false
+Nervalin,Pregabalin,75 mg,CAPSULE,STRIP,Beximco,10,3,150.00,,নারভালিন,,false
+Esloric,Allopurinol,100 mg,TABLET,STRIP,Square,10,10,20.00,,ইসলরিক,,false
+Cartilex,Glucosamine,750 mg,TABLET,STRIP,Square,10,3,150.00,,কারটিলেক্স,,false
+Ultrafen,Diclofenac,50 mg,TABLET,STRIP,Beximco,10,10,10.00,,আলট্রাফেন,,false
+Etorix,Etoricoxib,90 mg,TABLET,STRIP,Square,10,3,150.00,,ইটোরিক্স,,false
+Coxia,Etoricoxib,90 mg,TABLET,STRIP,Incepta,10,3,140.00,,কক্সিয়া,,false
+Duvent,Tamsulosin,0.4 mg,CAPSULE,STRIP,Square,10,3,150.00,,ডুভেন্ট,,false
+Urocit-K,Potassium citrate,,TABLET,STRIP,Square,10,3,100.00,,ইউরোসিট,,false
+Cotson,Hydrocortisone,1%,CREAM,UNIT,Square,,,,50.00,কটসন,,false
+Hexisol,Chlorhexidine,100 ml,OTHER,UNIT,ACI,,,,90.00,হেক্সিসল,,false
+Savlon,Chloroxylenol,100 ml,OTHER,UNIT,ACI,,,,70.00,স্যাভলন,,false
+Glucose-D,Glucose,100 g,OTHER,UNIT,Square,,,,60.00,গ্লুকোজ ডি,,false
+Paracetamol,Paracetamol,500 mg,TABLET,STRIP,Generic,10,10,8.00,,প্যারাসিটামল,,false
+Napa Rapid,Paracetamol,500 mg,TABLET,STRIP,Beximco,10,10,20.00,,নাপা র‍্যাপিড,,false
+Tamen,Paracetamol,500 mg,TABLET,STRIP,Incepta,10,10,10.00,,টামেন,,false
+Xpa,Paracetamol,500 mg,TABLET,STRIP,Incepta,10,10,10.00,,এক্সপা,,false
+Pyralgin,Metamizole,500 mg,TABLET,STRIP,Square,10,10,30.00,,পাইরালজিন,,false
+Indever,Propranolol,10 mg,TABLET,STRIP,ACI,10,10,10.00,,ইনডেভার,,false
+Cardobis,Bisoprolol,2.5 mg,TABLET,STRIP,Square,10,3,60.00,,কার্ডোবিস,,false
+Dilatrend,Carvedilol,6.25 mg,TABLET,STRIP,Roche,10,3,120.00,,ডাইলাট্রেন্ড,,false
+Olmesan,Olmesartan,20 mg,TABLET,STRIP,Square,10,3,150.00,,ওলমেসান,,false
+Telmisan,Telmisartan,40 mg,TABLET,STRIP,Beximco,10,3,120.00,,টেলমিসান,,false
+Hepacon,Silymarin,140 mg,TABLET,STRIP,Square,10,3,80.00,,হেপাকন,,false
+Lefora,Levocetirizine,5 mg,TABLET,STRIP,Square,10,5,50.00,,লেফোরা,,false
+Monocast,Montelukast,10 mg,TABLET,STRIP,Beacon,10,3,150.00,,মনোক্যাস্ট,,false
+Clarin,Clarithromycin,500 mg,TABLET,STRIP,Square,4,3,200.00,,ক্ল্যারিন,,false
+Cefaclor,Cefaclor,250 mg,CAPSULE,STRIP,Opsonin,10,3,200.00,,,,false
+Fexo Syrup,Fexofenadine,30 mg/5 ml,SYRUP,UNIT,Square,,,,90.00,ফেক্সো সিরাপ,,false
+Sinora,Pseudoephedrine + Triprolidine,100 ml,SYRUP,UNIT,Square,,,,70.00,সিনোরা,,false
+Brofex,Dextromethorphan,100 ml,SYRUP,UNIT,Square,,,,75.00,ব্রোফেক্স,,false
