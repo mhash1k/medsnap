@@ -230,7 +230,7 @@
     <string name="voice_err_network">ভয়েসের জন্য ইন্টারনেট বা অফলাইন স্পিচ প্যাক দরকার।</string>
     <string name="voice_err_nomatch">কিছু শোনা যায়নি। আবার বলুন।</string>
     <string name="voice_err_permission">মাইক্রোফোনের অনুমতি দরকার।</string>
-    <string name="voice_err_unavailable">এই ফোনে স্পিচ রিকগনিশন নেই।</string>
+    <string name="voice_err_unavailable">এই ফোনে ভয়েস চালু নেই। Google অ্যাপ ইনস্টল বা আপডেট করে আবার চেষ্টা করুন।</string>
     <string name="voice_hint">বলুন যেমন \"নাপা দুইটা, সেকলো এক পাতা\"</string>
     <string name="voice_new_draft">ড্রাফট #%1$s শুরু হয়েছে</string>
     <string name="voice_not_in_bill">%1$s এই বিলে নেই</string>
@@ -319,4 +319,11 @@
     <string name="view_all">সব দেখুন</string>
     <string name="voice_add">ভয়েস</string>
     <string name="voice_billing">ভয়েসে বিল</string>
+    <string name="phone_err_01">নম্বর ০১ দিয়ে শুরু হতে হবে</string>
+    <string name="phone_err_operator">তৃতীয় অঙ্ক ৩ থেকে ৯ হতে হবে (০১৩ থেকে ০১৯)</string>
+    <string name="phone_hint">১১ অঙ্কের মোবাইল নম্বর, যেমন ০১৭১২৩৪৫৬৭৮</string>
+    <string name="phone_ok">সঠিক বাংলাদেশি নম্বর</string>
+    <string name="upload_failed">ছবিটি খোলা যায়নি। অন্য ছবি দিন।</string>
+    <string name="upload_photo">আপলোড</string>
+    <string name="which_medicine">এটা কোন ওষুধ? সঠিকটিতে চাপুন</string>
 </resources>

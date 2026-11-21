@@ -217,10 +217,17 @@ private fun ScanLineCard(
             }
             // Top-3 picker
             val cands = l.ai.candidates.mapNotNull { s.candidates[it.id] }
-            if (l.flag != Flag.GREEN && cands.isNotEmpty()) {
-                Text(stringResource(R.string.did_you_mean), style = MaterialTheme.typography.labelLarge)
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    cands.forEach { c -> FilterChip(selected = m?.id == c.id, onClick = { onPick(c) }, label = { Text(c.displayName) }, modifier = Modifier.heightIn(min = 48.dp)) }
+            // Only ask "which one?" when the NAME is unsure; a sure name with an unchecked count shows no choices.
+            if ((l.ai.nameFlag != Flag.GREEN || m == null) && cands.isNotEmpty()) {
+                Text(stringResource(R.string.which_medicine), style = MaterialTheme.typography.labelLarge)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    cands.forEach { c ->
+                        FilterChip(
+                            selected = m?.id == c.id, onClick = { onPick(c) },
+                            label = { Text(c.displayName + if (c.company.isNotBlank()) " · " + c.company else "") },
+                            modifier = Modifier.heightIn(min = 48.dp),
+                        )
+                    }
                 }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

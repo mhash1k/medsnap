@@ -122,6 +122,18 @@ class VoiceHelper(
         }
     }
 
+    /** System "Speak now" dialog, used when the in-app recognizer cannot run on this phone. */
+    fun systemIntent(): android.content.Intent? = speech.systemDialogIntent()
+
+    /** Results coming back from the system dialog go through the same command runner. */
+    fun handleResults(alternatives: List<String>) {
+        if (alternatives.isEmpty()) return
+        scope.launch {
+            _partial.value = alternatives.first()
+            _events.send(runner.run(alternatives))
+        }
+    }
+
     fun piecesPerStrip(id: Long?): Int = id?.let { matcher.medicine(it)?.piecesPerStrip } ?: 1
 }
 
@@ -135,6 +147,20 @@ class VoiceHelperFactory @Inject constructor(
     private val matcher: MatcherProvider,
 ) {
     fun create(scope: CoroutineScope) = VoiceHelper(speech, runner, bills, speaker, settings, matcher, scope)
+}
+
+/**
+ * Returns the click handler for any "voice" button: asks for the microphone permission first,
+ * then starts/stops listening. Use this instead of calling [VoiceHelper.toggle] directly.
+ */
+@Composable
+fun rememberVoiceToggle(helper: VoiceHelper): () -> Unit {
+    val ctx = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted -> if (granted) helper.toggle() }
+    return {
+        if (ContextCompat.checkSelfPermission(ctx, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) helper.toggle()
+        else launcher.launch(Manifest.permission.RECORD_AUDIO)
+    }
 }
 
 @Composable
@@ -164,6 +190,11 @@ fun VoiceOutcomeEffects(
     val ctx = LocalContext.current
     val bn = LocalBangla.current
     var card by remember { mutableStateOf<Pair<String, List<String>>?>(null) }
+    val systemDialog = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
+        if (res.resultCode == android.app.Activity.RESULT_OK) {
+            helper.handleResults(res.data?.getStringArrayListExtra(android.speech.RecognizerIntent.EXTRA_RESULTS).orEmpty())
+        }
+    }
     LaunchedEffect(helper) {
         helper.events.collect { o ->
             fun qty(unit: com.pharmabill.app.domain.model.SaleUnit, q: Int, medId: Long?) = QtyText.plain(ctx, unit, q, helper.piecesPerStrip(medId), bn)
@@ -197,7 +228,11 @@ fun VoiceOutcomeEffects(
                 }
                 is VoiceOutcome.NotInBill -> snackbar.showSnackbar(ctx.getString(R.string.voice_not_in_bill, o.name))
                 is VoiceOutcome.NotUnderstood -> snackbar.showSnackbar(ctx.getString(R.string.voice_not_understood, o.text))
-                is VoiceOutcome.Failed -> snackbar.showSnackbar(
+                is VoiceOutcome.Failed -> if (o.errorCode == SpeechEngine.ERROR_USE_SYSTEM_DIALOG) {
+                    val i = helper.systemIntent()
+                    if (i != null) runCatching { systemDialog.launch(i) }.onFailure { snackbar.showSnackbar(ctx.getString(R.string.voice_err_unavailable)) }
+                    else snackbar.showSnackbar(ctx.getString(R.string.voice_err_unavailable))
+                } else snackbar.showSnackbar(
                     ctx.getString(
                         when (o.errorCode) {
                             SpeechRecognizer.ERROR_NETWORK, SpeechRecognizer.ERROR_NETWORK_TIMEOUT, SpeechEngine.ERROR_LANGUAGE_UNAVAILABLE -> R.string.voice_err_network

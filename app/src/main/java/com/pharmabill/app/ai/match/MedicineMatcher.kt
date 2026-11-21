@@ -22,6 +22,8 @@ data class MatchEntry(
     internal val phonetic: String = PhoneticKey.of(brandLower)
     internal val companyWord: String? = TextNormalizer.brandTokens(company).firstOrNull()
     internal val genericWord: String? = TextNormalizer.brandTokens(generic).firstOrNull()
+    internal val brandTokenList: List<String> = brandKey.split(' ').filter { it.isNotEmpty() }
+    internal val aliasTokenLists: List<List<String>> = aliasKeys.map { k -> k.split(' ').filter { it.isNotEmpty() } }.filter { it.isNotEmpty() }
 }
 
 data class MatchCandidate(val id: Long, val score: Double)
@@ -81,6 +83,93 @@ class MedicineMatcher(entries: List<MatchEntry>) {
         }
         return topDistinct(scored, limit)
     }
+
+    /**
+     * Whole-photo identification: decides which ONE medicine the photo shows.
+     *
+     * Every printed line is read together. A medicine only qualifies when every word of its brand
+     * matches a run of words on the pack ("Napa Rapid" needs both NAPA and RAPID), so side text such
+     * as "Actizorb technology", "Beximco Pharma" or licence numbers can no longer become medicines.
+     * Among qualifying brands the most specific wins (Napa Rapid beats Napa), a brand that is only the
+     * generic name of a stronger match is dropped, and company / generic / strength are supporting
+     * evidence. Returns at most [limit] candidates, best first; an empty list means "not recognised".
+     */
+    fun identify(lines: List<String>, limit: Int = 3): List<MatchCandidate> =
+        identifyWith(lines, limit, BRAND_MIN, 0.8, 1.0).ifEmpty {
+            // Nothing clear: try once more with loose matching, capped below green so staff pick from the options.
+            identifyWith(lines, limit, BRAND_LOOSE, 0.7, LOOSE_CAP)
+        }
+
+    private fun identifyWith(lines: List<String>, limit: Int, brandMin: Double, wordMin: Double, cap: Double): List<MatchCandidate> {
+        val lineTokens = lines.map { TextNormalizer.brandTokens(it) }.filter { it.isNotEmpty() }
+        if (lineTokens.isEmpty()) return emptyList()
+        val allTokens = lineTokens.flatten().toSet()
+        val fullText = lines.joinToString(" ")
+        val textStrengths = TextNormalizer.strengths(fullText).map { it.key }.toSet()
+        val textStrengthNumbers = TextNormalizer.strengths(fullText).map { it.value }.toSet()
+        val knownCompanies = companyWords
+        val textCompanies = allTokens.filter { it in knownCompanies }.toSet()
+
+        val pool = LinkedHashSet<MatchEntry>()
+        for (t in allTokens) {
+            byFirstLetter[t.first()]?.let { pool.addAll(it) }
+            ocrSwapLetters(t.first()).forEach { c -> byFirstLetter[c]?.let { pool.addAll(it) } }
+        }
+
+        data class Hit(val e: MatchEntry, val brandSim: Double, val repeats: Int, val tokens: List<String>)
+        val hits = pool.mapNotNull { e ->
+            var best = 0.0
+            var bestTokens = e.brandTokenList
+            var repeats = 0
+            for (brand in listOf(e.brandTokenList) + e.aliasTokenLists) {
+                if (brand.isEmpty()) continue
+                var lineHits = 0
+                for (lt in lineTokens) {
+                    val sim = phraseSimilarity(brand, lt, wordMin)
+                    if (sim >= brandMin) lineHits++
+                    if (sim > best) { best = sim; bestTokens = brand }
+                }
+                repeats = maxOf(repeats, lineHits)
+            }
+            if (best < brandMin) null else Hit(e, best, repeats, bestTokens)
+        }
+        if (hits.isEmpty()) return emptyList()
+
+        // Most specific brand wins: drop "Napa" when "Napa Rapid" matched just as well.
+        val specific = hits.filter { h ->
+            hits.none { o ->
+                o.tokens.size > h.tokens.size && o.brandSim >= BRAND_STRONG &&
+                    o.brandSim >= h.brandSim - 0.03 && o.tokens.containsAll(h.tokens)
+            }
+        }
+        // A brand that is only the generic of a stronger match ("Paracetamol" on a Napa Rapid strip) is not the medicine.
+        val strongGenerics = specific.filter { it.brandSim >= BRAND_STRONG && it.e.genericWord != null && it.e.brandKey != it.e.genericWord }
+            .mapNotNull { it.e.genericWord }.toSet()
+        val kept = specific.filterNot { h -> h.e.brandKey == h.e.genericWord && h.e.brandKey in strongGenerics }
+
+        val scored = kept.map { h ->
+            val e = h.e
+            val strength = when {
+                textStrengths.isEmpty() || e.strengthKey == null -> 0.5
+                e.strengthKey in textStrengths -> 1.0
+                e.strengthNumber != null && e.strengthNumber in textStrengthNumbers -> 0.8
+                else -> 0.0
+            }
+            val companyOk = e.companyWord != null && e.companyWord in textCompanies
+            val companyClash = !companyOk && textCompanies.isNotEmpty() && e.companyWord != null && e.companyWord in knownCompanies
+            val genericOk = e.genericWord != null && e.brandKey != e.genericWord && allTokens.any { JaroWinkler.similarity(it, e.genericWord) >= 0.9 }
+            val support = (if (companyOk) 0.5 else 0.0) + (if (genericOk) 0.5 else 0.0) - (if (companyClash) 0.5 else 0.0)
+            val repeat = (h.repeats - 1).coerceIn(0, 3) * 0.01
+            val score = 0.65 * h.brandSim + 0.25 * strength + 0.10 * support.coerceIn(0.0, 1.0) + repeat - (if (companyClash) 0.05 else 0.0)
+            MatchCandidate(e.id, score.coerceIn(0.0, cap))
+        }
+        val ranked = topDistinct(scored, scored.size)
+        val top = ranked.firstOrNull() ?: return emptyList()
+        return ranked.filter { it.score >= top.score - KEEP_WITHIN && it.score >= 0.5 }.take(limit)
+    }
+
+    /** Company first words seen in the catalogue (BEXIMCO, SQUARE, ...), used to spot the maker on the pack. */
+    private val companyWords: Set<String> = all.mapNotNull { it.companyWord }.filter { it.length >= 3 }.toSet()
 
     private fun ocrSwapLetters(c: Char): List<Char> = when (c) {
         'O' -> listOf('0'); 'I' -> listOf('L', '1'); 'L' -> listOf('I'); 'S' -> listOf('5'); else -> emptyList()
@@ -150,6 +239,46 @@ class MedicineMatcher(entries: List<MatchEntry>) {
             val maxLen = maxOf(a.length, b.length).coerceAtLeast(1)
             val lev = 1.0 - Levenshtein.distance(a, b).toDouble() / maxLen
             return (JaroWinkler.similarity(a, b) + lev) / 2.0
+        }
+
+        /** Below this a brand is not considered present on the pack at all. */
+        const val BRAND_MIN = 0.86
+        const val BRAND_STRONG = 0.92
+        const val BRAND_LOOSE = 0.76
+        /** Loose matches never reach the green threshold. */
+        const val LOOSE_CAP = 0.80
+        /** Alternatives offered to staff must be this close to the best guess. */
+        const val KEEP_WITHIN = 0.15
+
+        /** Similarity of one OCR word to one brand word: Jaro-Winkler and edit distance must both agree. */
+        fun wordSimilarity(a: String, b: String): Double {
+            if (a == b) return 1.0
+            val maxLen = maxOf(a.length, b.length)
+            val minLen = minOf(a.length, b.length)
+            if (minLen == 0) return 0.0
+            // Very short words need an exact match ("ACE" must not match "ACTIZORB"); 3 letters may stand for a 4-letter brand.
+            if (minLen < 3 || (minLen == 3 && maxLen > 4)) return 0.0
+            if (maxLen - minLen > maxOf(2, maxLen / 4)) return 0.0
+            val lev = 1.0 - Levenshtein.distance(a, b).toDouble() / maxLen
+            return minOf(JaroWinkler.similarity(a, b), (JaroWinkler.similarity(a, b) + lev) / 2.0)
+        }
+
+        /** Best match of a multi-word brand against consecutive words of one printed line; every word must match. */
+        fun phraseSimilarity(brand: List<String>, line: List<String>, wordMin: Double = 0.8): Double {
+            if (brand.isEmpty() || line.size < brand.size) return 0.0
+            var best = 0.0
+            for (i in 0..line.size - brand.size) {
+                var sum = 0.0
+                var min = 1.0
+                for (k in brand.indices) {
+                    val s = wordSimilarity(line[i + k], brand[k])
+                    sum += s
+                    if (s < min) min = s
+                }
+                if (min < wordMin) continue
+                best = maxOf(best, sum / brand.size)
+            }
+            return best
         }
 
         fun windows(tokens: List<String>, maxLen: Int): List<String> {

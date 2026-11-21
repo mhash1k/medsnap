@@ -100,6 +100,7 @@ import com.pharmabill.app.ui.components.num
 import com.pharmabill.app.ui.theme.BigNumber
 import com.pharmabill.app.ui.voice.MicButton
 import com.pharmabill.app.ui.voice.VoiceOutcomeEffects
+import com.pharmabill.app.ui.voice.rememberVoiceToggle
 import com.pharmabill.app.util.Fmt
 import kotlinx.coroutines.launch
 
@@ -123,6 +124,7 @@ fun BillScreen(
     val bn = LocalBangla.current
     var editing by remember { mutableStateOf<BillLineEntity?>(null) }
     var picking by remember { mutableStateOf(false) }
+    val voiceToggle = rememberVoiceToggle(vm.voice)
     var confirmOpen by remember { mutableStateOf(openConfirm) }
     var labelOpen by remember { mutableStateOf(false) }
     var deleteOpen by remember { mutableStateOf(false) }
@@ -168,7 +170,7 @@ fun BillScreen(
                     SoftButton(stringResource(R.string.add_item), { picking = true }, Modifier.weight(1f), icon = Icons.Filled.Search)
                     SoftButton(stringResource(R.string.scan_items), { onPhoto(vm.billId) }, Modifier.weight(1f), icon = Icons.Outlined.PhotoCamera)
                     SoftButton(
-                        stringResource(if (listening) R.string.stop_listening else R.string.voice_add), vm.voice::toggle, Modifier.weight(1f),
+                        stringResource(if (listening) R.string.stop_listening else R.string.voice_add), voiceToggle, Modifier.weight(1f),
                         icon = if (listening) Icons.Filled.Stop else Icons.Outlined.Mic,
                     )
                 }

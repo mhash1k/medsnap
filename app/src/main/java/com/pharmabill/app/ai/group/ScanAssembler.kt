@@ -24,6 +24,8 @@ data class ScanLine(
     val flag: Flag,
     val area: BBox?,
     val detections: List<Detection>,
+    /** How sure we are about WHICH medicine it is (separate from the count). Not green -> show the choices. */
+    val nameFlag: Flag = flag,
 )
 
 /** Step 6 of the pipeline: turn grouped items into piece / strip / box / unit lines with flags. */
@@ -46,7 +48,7 @@ class ScanAssembler(private val flags: FlagEvaluator, private val infoOf: (Long)
 
         if (info == null) {
             // Group with no name: "Unknown medicine, N pcs".
-            ScanLine(null, candidates, name?.text, count, isBox, conf, top?.score ?: 0.0, SaleUnit.PIECE, count.coerceAtLeast(1), Flag.RED, area, dets)
+            ScanLine(null, candidates, name?.text, count, isBox, conf, top?.score ?: 0.0, SaleUnit.PIECE, count.coerceAtLeast(1), Flag.RED, area, dets, Flag.RED)
         } else {
             val nameFlag = flags.nameFlag(top.score, candidates.getOrNull(1)?.score)
             val countFlag = when {
@@ -60,7 +62,7 @@ class ScanAssembler(private val flags: FlagEvaluator, private val infoOf: (Long)
                 count <= 0 -> SaleUnit.PIECE to info.piecesPerStrip.coerceAtLeast(1)
                 else -> QuantityResolver.fromDetectedCount(info, count).let { it.unit to it.quantity }
             }
-            ScanLine(info.id, candidates, name?.text, count, isBox, conf, top.score, unit, qty, flags.lineFlag(nameFlag, countFlag), area, dets)
+            ScanLine(info.id, candidates, name?.text, count, isBox, conf, top.score, unit, qty, flags.lineFlag(nameFlag, countFlag), area, dets, nameFlag)
         }
     }
 }
