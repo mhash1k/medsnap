@@ -127,7 +127,7 @@ fun MedicinePickerDialog(
                         }
                     }
                     if (onQuickAdd != null) {
-                        OutlinedButton(onClick = { onQuickAdd(query) }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+                        OutlinedButton(shape = PbBtnShape, onClick = { onQuickAdd(query) }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
                             Text(stringResource(R.string.quick_add_new))
                         }
                     }
@@ -172,8 +172,8 @@ fun UnitQuantityPicker(m: MedicineEntity, onBack: () -> Unit, onAdd: (SaleUnit, 
         Text(QtyText.plain(ctx, unit, qty, m.piecesPerStrip, bn), style = MaterialTheme.typography.bodyLarge)
         Text(money(PriceCalculator.linePrice(info, unit, qty)), style = MaterialTheme.typography.headlineMedium)
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            OutlinedButton(onClick = onBack, modifier = Modifier.heightIn(min = 52.dp)) { Text(stringResource(R.string.back)) }
-            Button(onClick = { onAdd(unit, qty) }, modifier = Modifier.weight(1f).heightIn(min = 52.dp)) { Text(stringResource(R.string.add_to_bill)) }
+            OutlinedButton(shape = PbBtnShape, onClick = onBack, modifier = Modifier.heightIn(min = 52.dp)) { Text(stringResource(R.string.back)) }
+            Button(shape = PbBtnShape, onClick = { onAdd(unit, qty) }, modifier = Modifier.weight(1f).heightIn(min = 52.dp)) { Text(stringResource(R.string.add_to_bill)) }
         }
     }
 }

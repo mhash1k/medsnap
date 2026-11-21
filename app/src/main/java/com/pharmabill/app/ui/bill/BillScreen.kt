@@ -2,7 +2,21 @@
 
 package com.pharmabill.app.ui.bill
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.Mic
+import androidx.compose.material.icons.outlined.PhotoCamera
+import androidx.compose.material.icons.outlined.Receipt
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -37,7 +51,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,12 +66,28 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pharmabill.app.R
+import com.pharmabill.app.ui.components.PbBtnShape
+import com.pharmabill.app.ui.components.PbTopBar
 import com.pharmabill.app.data.db.entities.BillLineEntity
 import com.pharmabill.app.data.repo.ConfirmResult
 import com.pharmabill.app.domain.model.DiscountType
 import com.pharmabill.app.domain.model.Flag
 import com.pharmabill.app.domain.pricing.PriceCalculator
+import com.pharmabill.app.ui.components.BackButton
+import com.pharmabill.app.ui.components.CardTitle
 import com.pharmabill.app.ui.components.DraftChipsBar
+import com.pharmabill.app.ui.components.EmptyBlock
+import com.pharmabill.app.ui.components.FlagPill
+import com.pharmabill.app.ui.components.ItemRow
+import com.pharmabill.app.ui.components.PbButton
+import com.pharmabill.app.ui.components.PbCard
+import com.pharmabill.app.ui.components.PbTextButton
+import com.pharmabill.app.ui.components.SoftButton
+import com.pharmabill.app.ui.components.TextTile
+import com.pharmabill.app.ui.components.Tone
+import com.pharmabill.app.ui.components.VSpace
+import com.pharmabill.app.ui.components.groupItem
+import com.pharmabill.app.ui.theme.Pb
 import com.pharmabill.app.ui.components.EmptyState
 import com.pharmabill.app.ui.components.FlagBadge
 import com.pharmabill.app.ui.components.LocalBangla
@@ -104,63 +133,87 @@ fun BillScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(bill?.let { draftTitle(ctx, it, bn) } ?: "") },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) } },
+            PbTopBar(
+                title = { Text(bill?.let { draftTitle(ctx, it, bn) } ?: stringResource(R.string.current_bill)) },
+                navigationIcon = { BackButton(onBack) },
                 actions = {
-                    IconButton(onClick = { labelOpen = true }) { Icon(Icons.Filled.Edit, stringResource(R.string.customer_label)) }
-                    IconButton(onClick = { deleteOpen = true }) { Icon(Icons.Filled.Delete, stringResource(R.string.delete_draft)) }
+                    IconButton(onClick = { labelOpen = true }) { Icon(Icons.Outlined.Edit, stringResource(R.string.customer_label)) }
+                    IconButton(onClick = { deleteOpen = true }) { Icon(Icons.Outlined.Delete, stringResource(R.string.delete_draft)) }
                 },
             )
         },
         snackbarHost = { SnackbarHost(snackbar) },
         bottomBar = {
-            Card(Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(12.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f)) {
-                            Text(stringResource(R.string.total), style = MaterialTheme.typography.labelLarge)
-                            Text(moneyWhole(bill?.total ?: 0), style = BigNumber)
-                        }
-                        Button(onClick = { confirmOpen = true }, enabled = ui.lines.isNotEmpty(), modifier = Modifier.heightIn(min = 56.dp)) {
-                            Text(
-                                if (ui.needsChecking > 0) stringResource(R.string.items_need_checking, num(ui.needsChecking))
-                                else stringResource(R.string.confirm),
-                            )
-                        }
-                    }
+            Column(Modifier.fillMaxWidth().background(Color.White)) {
+                HorizontalDivider(color = Pb.line)
+                Column(Modifier.navigationBarsPadding().padding(horizontal = 18.dp, vertical = 12.dp)) {
+                    PbButton(
+                        if (ui.needsChecking > 0) stringResource(R.string.items_need_checking, num(ui.needsChecking))
+                        else stringResource(R.string.confirm_bill_total, moneyWhole(bill?.total ?: 0)),
+                        { confirmOpen = true },
+                        Modifier.fillMaxWidth(),
+                        enabled = ui.lines.isNotEmpty(),
+                        tone = if (ui.needsChecking > 0) Tone.YELLOW else Tone.BLUE,
+                        filled = ui.needsChecking == 0,
+                    )
                 }
             }
         },
     ) { pad ->
-        Column(Modifier.padding(pad).fillMaxSize()) {
-            DraftChipsBar(drafts, vm.billId, settings.draftReminderHours, onSelect = { if (it != vm.billId) onSwitch(it) }, onNew = { scope.launch { onSwitch(vm.newDraft()) } })
-            Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                MicButton(listening, vm.voice::toggle, size = 56)
-                FilledTonalButton(onClick = { onPhoto(vm.billId) }, modifier = Modifier.heightIn(min = 56.dp)) {
-                    Icon(Icons.Filled.CameraAlt, null); Text(stringResource(R.string.add_photo), Modifier.padding(start = 6.dp))
+        LazyColumn(Modifier.padding(pad).fillMaxSize(), contentPadding = PaddingValues(start = 18.dp, end = 18.dp, top = 14.dp, bottom = 16.dp)) {
+            item {
+                DraftChipsBar(drafts, vm.billId, settings.draftReminderHours, onSelect = { if (it != vm.billId) onSwitch(it) }, onNew = { scope.launch { onSwitch(vm.newDraft()) } })
+                VSpace(12)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    SoftButton(stringResource(R.string.add_item), { picking = true }, Modifier.weight(1f), icon = Icons.Filled.Search)
+                    SoftButton(stringResource(R.string.scan_items), { onPhoto(vm.billId) }, Modifier.weight(1f), icon = Icons.Outlined.PhotoCamera)
+                    SoftButton(
+                        stringResource(if (listening) R.string.stop_listening else R.string.voice_add), vm.voice::toggle, Modifier.weight(1f),
+                        icon = if (listening) Icons.Filled.Stop else Icons.Outlined.Mic,
+                    )
                 }
-                FilledTonalButton(onClick = { picking = true }, modifier = Modifier.heightIn(min = 56.dp).weight(1f)) {
-                    Icon(Icons.Filled.Search, null); Text(stringResource(R.string.search), Modifier.padding(start = 6.dp))
+                if (listening || partial.isNotBlank()) {
+                    PbCard(Modifier.padding(top = 10.dp), container = Pb.voiceBg, border = Pb.voiceBorder, contentPadding = PaddingValues(12.dp)) {
+                        Text(if (listening && partial.isBlank()) stringResource(R.string.listening) else partial, fontSize = 13.sp, color = Pb.voiceInk)
+                    }
+                }
+                VSpace(14)
+                Row(Modifier.fillMaxWidth().padding(bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    CardTitle(stringResource(R.string.items_n, num(ui.lines.size)), Modifier.weight(1f), sub = stringResource(R.string.items_check_hint))
                 }
             }
-            if (listening || partial.isNotBlank()) Text(if (listening && partial.isBlank()) stringResource(R.string.listening) else partial, Modifier.padding(horizontal = 16.dp))
-            LazyColumn(Modifier.weight(1f)) {
-                if (ui.lines.isEmpty()) item { EmptyState(stringResource(R.string.bill_empty)) }
-                items(ui.lines, key = { it.id }) { l ->
-                    LineRow(l, ui.medicines[l.medicineId]?.piecesPerStrip ?: 1, onClick = { editing = l }, onRemove = {
+            if (ui.lines.isEmpty()) item {
+                PbCard { EmptyBlock(stringResource(R.string.no_items_yet), stringResource(R.string.bill_empty), Icons.Outlined.Receipt) }
+            }
+            itemsIndexed(ui.lines, key = { _, l -> l.id }) { i, l ->
+                LineRow(
+                    l, ui.medicines[l.medicineId]?.piecesPerStrip ?: 1,
+                    modifier = Modifier.groupItem(i == 0, i == ui.lines.lastIndex), last = i == ui.lines.lastIndex,
+                    onClick = { editing = l },
+                    onRemove = {
                         scope.launch {
                             val removed = vm.remove(l.id)
                             if (removed != null && snackbar.showSnackbar(ctx.getString(R.string.removed_item, removed.displayName), ctx.getString(R.string.undo), duration = SnackbarDuration.Long) == SnackbarResult.ActionPerformed) vm.restore(removed)
                         }
-                    })
-                    HorizontalDivider()
-                }
-                if (bill != null && bill.subtotal > 0) item {
-                    Column(Modifier.padding(16.dp)) {
-                        Row { Text(stringResource(R.string.subtotal), Modifier.weight(1f)); Text(money(bill.subtotal)) }
-                        val d = PriceCalculator.discountAmount(bill.subtotal, bill.discountType, bill.discountValue)
-                        if (d > 0) Row { Text(stringResource(R.string.discount), Modifier.weight(1f)); Text("-" + money(d)) }
+                    },
+                )
+            }
+            if (bill != null && ui.lines.isNotEmpty()) item {
+                VSpace(13)
+                PbCard {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(stringResource(R.string.subtotal), fontSize = 13.sp, color = Pb.muted, modifier = Modifier.weight(1f))
+                        Text(money(bill.subtotal), fontWeight = FontWeight.Bold)
+                    }
+                    val d = PriceCalculator.discountAmount(bill.subtotal, bill.discountType, bill.discountValue)
+                    Row(Modifier.padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(stringResource(R.string.discount), fontSize = 13.sp, color = Pb.muted, modifier = Modifier.weight(1f))
+                        PbTextButton(if (d > 0) "- " + money(d) else stringResource(R.string.add_discount), { confirmOpen = true })
+                    }
+                    HorizontalDivider(Modifier.padding(vertical = 10.dp), color = Pb.line)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(stringResource(R.string.total), fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                        Text(moneyWhole(bill.total), style = BigNumber)
                     }
                 }
             }
@@ -202,7 +255,7 @@ fun BillScreen(
             onDismissRequest = { labelOpen = false },
             title = { Text(stringResource(R.string.customer_label)) },
             text = { OutlinedTextField(text, { text = it }, singleLine = true, placeholder = { Text(stringResource(R.string.customer_label_hint)) }) },
-            confirmButton = { Button(onClick = { vm.setLabel(text); labelOpen = false }) { Text(stringResource(R.string.save)) } },
+            confirmButton = { Button(shape = PbBtnShape, onClick = { vm.setLabel(text); labelOpen = false }) { Text(stringResource(R.string.save)) } },
             dismissButton = { TextButton(onClick = { labelOpen = false }) { Text(stringResource(R.string.cancel)) } },
         )
     }
@@ -211,26 +264,41 @@ fun BillScreen(
             onDismissRequest = { deleteOpen = false },
             title = { Text(stringResource(R.string.delete_draft)) },
             text = { Text(stringResource(R.string.delete_draft_confirm)) },
-            confirmButton = { Button(onClick = { scope.launch { vm.deleteDraft(); deleteOpen = false; onBack() } }) { Text(stringResource(R.string.delete)) } },
+            confirmButton = { Button(shape = PbBtnShape, onClick = { scope.launch { vm.deleteDraft(); deleteOpen = false; onBack() } }) { Text(stringResource(R.string.delete)) } },
             dismissButton = { TextButton(onClick = { deleteOpen = false }) { Text(stringResource(R.string.cancel)) } },
         )
     }
 }
 
 @Composable
-private fun LineRow(l: BillLineEntity, piecesPerStrip: Int, onClick: () -> Unit, onRemove: () -> Unit) {
+private fun LineRow(l: BillLineEntity, piecesPerStrip: Int, onClick: () -> Unit, onRemove: () -> Unit, modifier: Modifier = Modifier, last: Boolean = false) {
     val ctx = LocalContext.current
     val bn = LocalBangla.current
-    Row(Modifier.fillMaxWidth().clickable(onClick = onClick).heightIn(min = 64.dp).padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-        FlagBadge(l.flag)
-        Column(Modifier.weight(1f).padding(start = 12.dp)) {
-            Text(l.displayName.ifBlank { stringResource(R.string.unknown_medicine) }, style = MaterialTheme.typography.titleMedium)
-            Text(QtyText.plain(ctx, l.saleUnit, l.quantity, piecesPerStrip, bn), style = MaterialTheme.typography.bodyMedium)
-            if (l.flag != Flag.GREEN) Text(stringResource(if (l.isBox) R.string.tap_choose_box else R.string.tap_to_check), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
-        }
-        Text(money(l.lineTotal), style = MaterialTheme.typography.titleMedium)
-        IconButton(onClick = onRemove) { Icon(Icons.Filled.Delete, stringResource(R.string.remove)) }
-    }
+    ItemRow(
+        title = l.displayName.ifBlank { stringResource(R.string.unknown_medicine) },
+        meta = QtyText.plain(ctx, l.saleUnit, l.quantity, piecesPerStrip, bn),
+        modifier = modifier,
+        leading = { TextTile("✚", size = 38.dp, radius = 13.dp) },
+        below = {
+            Row(Modifier.padding(top = 7.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FlagPill(l.flag)
+                if (l.flag != Flag.GREEN) Text(
+                    stringResource(if (l.isBox) R.string.tap_choose_box else R.string.tap_to_check),
+                    fontSize = 11.sp, color = if (l.flag == Flag.RED) Pb.red else Pb.yellow, maxLines = 1,
+                )
+            }
+        },
+        trailing = {
+            Column(horizontalAlignment = Alignment.End) {
+                Text(money(l.lineTotal), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                IconButton(onClick = onRemove, modifier = Modifier.size(36.dp)) {
+                    Icon(Icons.Outlined.Delete, stringResource(R.string.remove), tint = Pb.red, modifier = Modifier.size(19.dp))
+                }
+            }
+        },
+        last = last,
+        onClick = onClick,
+    )
 }
 
 @Composable
@@ -276,7 +344,7 @@ private fun ConfirmDialog(
             }
         },
         confirmButton = {
-            Button(onClick = onConfirm, enabled = needsChecking == 0 && hasLines, modifier = Modifier.heightIn(min = 48.dp)) {
+            Button(shape = PbBtnShape, onClick = onConfirm, enabled = needsChecking == 0 && hasLines, modifier = Modifier.heightIn(min = 48.dp)) {
                 Text(if (needsChecking > 0) stringResource(R.string.items_need_checking, num(needsChecking)) else stringResource(R.string.confirm))
             }
         },

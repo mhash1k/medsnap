@@ -30,6 +30,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pharmabill.app.R
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.ui.unit.sp
+import com.pharmabill.app.ui.components.BrandMark
+import com.pharmabill.app.ui.components.PageHeader
+import com.pharmabill.app.ui.components.PagePadding
+import com.pharmabill.app.ui.theme.Pb
+import com.pharmabill.app.ui.components.PbBtnShape
 import com.pharmabill.app.data.prefs.AppSettings
 import com.pharmabill.app.data.prefs.SettingsStore
 import com.pharmabill.app.data.seed.SeedImporter
@@ -52,12 +60,13 @@ class SetupViewModel @Inject constructor(private val store: SettingsStore, seed:
 fun LanguageScreen(onChosen: () -> Unit, vm: SetupViewModel = hiltViewModel()) {
     val scope = rememberCoroutineScope()
     Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically), horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("PharmaBill", style = MaterialTheme.typography.headlineLarge)
-        Text("ভাষা বেছে নিন / Choose language", style = MaterialTheme.typography.titleMedium)
-        Button(onClick = { scope.launch { vm.setLanguage(AppSettings.LANG_BN); onChosen() } }, modifier = Modifier.fillMaxWidth().height(64.dp)) {
+        BrandMark(64.dp)
+        Text("PharmaBill", style = MaterialTheme.typography.headlineMedium)
+        Text("ভাষা বেছে নিন / Choose language", fontSize = 14.sp, color = Pb.muted)
+        Button(shape = PbBtnShape, onClick = { scope.launch { vm.setLanguage(AppSettings.LANG_BN); onChosen() } }, modifier = Modifier.fillMaxWidth().height(64.dp)) {
             Text("বাংলা", style = MaterialTheme.typography.titleLarge)
         }
-        OutlinedButton(onClick = { scope.launch { vm.setLanguage(AppSettings.LANG_EN); onChosen() } }, modifier = Modifier.fillMaxWidth().height(64.dp)) {
+        FilledTonalButton(shape = PbBtnShape, onClick = { scope.launch { vm.setLanguage(AppSettings.LANG_EN); onChosen() } }, modifier = Modifier.fillMaxWidth().height(64.dp)) {
             Text("English", style = MaterialTheme.typography.titleLarge)
         }
     }
@@ -71,15 +80,14 @@ fun ShopSetupScreen(onDone: () -> Unit, vm: SetupViewModel = hiltViewModel()) {
     var phone by remember { mutableStateOf("") }
     val seedDone by vm.seedDone.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text(stringResource(R.string.shop_setup), style = MaterialTheme.typography.headlineSmall)
-        Text(stringResource(R.string.shop_setup_hint), style = MaterialTheme.typography.bodyMedium)
+    Column(Modifier.fillMaxSize().statusBarsPadding().verticalScroll(rememberScrollState()).padding(PagePadding), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        PageHeader(stringResource(R.string.shop_setup), stringResource(R.string.shop_setup_hint))
         OutlinedTextField(name, { name = it }, Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.shop_name)) }, singleLine = true)
         OutlinedTextField(address, { address = it }, Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.shop_address)) }, singleLine = true)
         OutlinedTextField(phone, { phone = it }, Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.shop_phone)) }, singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone))
         Text(stringResource(if (seedDone) R.string.seed_ready else R.string.seed_importing), style = MaterialTheme.typography.bodySmall)
-        Button(onClick = { scope.launch { vm.finish(name, address, phone); onDone() } }, enabled = name.isNotBlank(), modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+        Button(shape = PbBtnShape, onClick = { scope.launch { vm.finish(name, address, phone); onDone() } }, enabled = name.isNotBlank(), modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
             Text(stringResource(R.string.start_billing))
         }
     }

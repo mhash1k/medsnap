@@ -51,7 +51,7 @@ class MainActivity : ComponentActivity() {
                 val s = settings
                 if (s == null) Loading() else {
                     CompositionLocalProvider(LocalBangla provides (LanguageMirror.get(this) == AppSettings.LANG_BN)) {
-                        AppNav(setupDone = s.setupDone, openOnStart = open, onLanguageChanged = { recreate() })
+                        AppNav(setupDone = s.setupDone, shopName = s.shopName, openOnStart = open, onLanguageChanged = { recreate() })
                     }
                 }
             }
