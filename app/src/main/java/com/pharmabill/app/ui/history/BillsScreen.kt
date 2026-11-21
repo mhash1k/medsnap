@@ -2,38 +2,38 @@
 
 package com.pharmabill.app.ui.history
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.outlined.EditNote
+import androidx.compose.material.icons.outlined.Receipt
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -44,21 +44,36 @@ import com.pharmabill.app.data.prefs.AppSettings
 import com.pharmabill.app.data.prefs.SettingsStore
 import com.pharmabill.app.data.repo.BillRepository
 import com.pharmabill.app.device.pdf.ReceiptBuilder
-import com.pharmabill.app.ui.components.EmptyState
+import com.pharmabill.app.domain.usecase.DraftManager
+import com.pharmabill.app.ui.components.EmptyBlock
+import com.pharmabill.app.ui.components.IconTile
+import com.pharmabill.app.ui.components.ItemRow
 import com.pharmabill.app.ui.components.LocalBangla
+import com.pharmabill.app.ui.components.PageHeader
+import com.pharmabill.app.ui.components.PbButton
+import com.pharmabill.app.ui.components.PbCard
+import com.pharmabill.app.ui.components.PillBadge
+import com.pharmabill.app.ui.components.PriceColumn
+import com.pharmabill.app.ui.components.SearchBox
+import com.pharmabill.app.ui.components.SegmentedTabs
+import com.pharmabill.app.ui.components.Tone
+import com.pharmabill.app.ui.components.groupItem
 import com.pharmabill.app.ui.components.draftTitle
 import com.pharmabill.app.ui.components.moneyWhole
+import com.pharmabill.app.ui.theme.Pb
 import com.pharmabill.app.util.Fmt
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
-class BillsViewModel @Inject constructor(bills: BillRepository, settings: SettingsStore) : ViewModel() {
+class BillsViewModel @Inject constructor(bills: BillRepository, settings: SettingsStore, private val draftManager: DraftManager) : ViewModel() {
+    suspend fun newDraft(): Long = draftManager.newDraft()
     val drafts = bills.observeDrafts().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     val confirmed = bills.observeConfirmed().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     val settings = settings.settings.stateIn(viewModelScope, SharingStarted.Eagerly, AppSettings())
@@ -74,43 +89,69 @@ fun BillsScreen(onOpenDraft: (Long) -> Unit, onOpenReceipt: (Long) -> Unit, vm: 
     var query by rememberSaveable { mutableStateOf("") }
     val ctx = LocalContext.current
     val bn = LocalBangla.current
+    val scope = rememberCoroutineScope()
     val dayFmt = SimpleDateFormat("EEE, dd MMM yyyy", if (bn) Locale.forLanguageTag("bn-BD") else Locale.US)
     val timeFmt = SimpleDateFormat("hh:mm a", if (bn) Locale.forLanguageTag("bn-BD") else Locale.US)
 
-    Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.tab_bills)) }) }) { pad ->
-        Column(Modifier.padding(pad).fillMaxSize()) {
-            TabRow(selectedTabIndex = tab) {
-                Tab(tab == 0, { tab = 0 }, text = { Text(stringResource(R.string.open_drafts, Fmt.number(drafts.size.toLong(), bn))) })
-                Tab(tab == 1, { tab = 1 }, text = { Text(stringResource(R.string.history)) })
+    Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        bottomBar = {
+            Box(Modifier.fillMaxWidth().background(Pb.bg).padding(horizontal = 18.dp, vertical = 10.dp)) {
+                PbButton(stringResource(R.string.create_new_bill), { scope.launch { onOpenDraft(vm.newDraft()) } }, Modifier.fillMaxWidth(), icon = Icons.Filled.Add)
+            }
+        },
+    ) { pad ->
+        LazyColumn(Modifier.padding(pad).fillMaxSize(), contentPadding = PaddingValues(start = 18.dp, end = 18.dp, top = 18.dp, bottom = 16.dp)) {
+            item {
+                PageHeader(stringResource(R.string.tab_bills), stringResource(R.string.bills_sub))
+                SegmentedTabs(
+                    listOf(stringResource(R.string.drafts_n, Fmt.number(drafts.size.toLong(), bn)), stringResource(R.string.completed)),
+                    tab, { tab = it }, Modifier.padding(bottom = 14.dp),
+                )
             }
             if (tab == 0) {
-                LazyColumn(Modifier.weight(1f)) {
-                    if (drafts.isEmpty()) item { EmptyState(stringResource(R.string.no_drafts)) }
-                    items(drafts, key = { it.id }) { d ->
-                        val old = System.currentTimeMillis() - d.createdAt > settings.draftReminderHours * 3_600_000L
-                        BillRow(draftTitle(ctx, d, bn), timeFmt.format(Date(d.createdAt)) + if (old) " · " + stringResource(R.string.old_draft) else "", moneyWhole(d.total)) { onOpenDraft(d.id) }
-                        HorizontalDivider()
-                    }
+                if (drafts.isEmpty()) item {
+                    PbCard { EmptyBlock(stringResource(R.string.no_drafts), stringResource(R.string.no_drafts_sub), Icons.Outlined.Receipt) }
+                }
+                itemsIndexed(drafts, key = { _, d -> d.id }) { i, d ->
+                    val old = System.currentTimeMillis() - d.createdAt > settings.draftReminderHours * 3_600_000L
+                    ItemRow(
+                        title = draftTitle(ctx, d, bn),
+                        meta = timeFmt.format(Date(d.createdAt)),
+                        modifier = Modifier.groupItem(i == 0, i == drafts.lastIndex),
+                        leading = { IconTile(Icons.Outlined.EditNote, bg = Pb.medIconBg, tint = Pb.medIcon, size = 42.dp, radius = 14.dp, iconSize = 21.dp) },
+                        below = { if (old) PillBadge(stringResource(R.string.old_draft), Tone.YELLOW, Modifier.padding(top = 6.dp)) },
+                        trailing = { PriceColumn(moneyWhole(d.total), stringResource(R.string.continue_arrow), subColor = Pb.primary) },
+                        last = i == drafts.lastIndex,
+                        onClick = { onOpenDraft(d.id) },
+                    )
                 }
             } else {
-                OutlinedTextField(query, { query = it }, Modifier.fillMaxWidth().padding(12.dp), leadingIcon = { Icon(Icons.Filled.Search, null) },
-                    placeholder = { Text(stringResource(R.string.search_bills_hint)) }, singleLine = true)
+                item { SearchBox(query, { query = it }, stringResource(R.string.search_bills_hint), Modifier.padding(bottom = 12.dp)) }
                 val filtered = confirmed.filter { b -> matches(b, query) }
                 val byDay = filtered.groupBy { dayFmt.format(Date(it.confirmedAt ?: it.createdAt)) }
-                LazyColumn(Modifier.weight(1f)) {
-                    if (filtered.isEmpty()) item { EmptyState(stringResource(R.string.no_bills)) }
-                    byDay.forEach { (day, list) ->
-                        item(key = "h_$day") {
-                            Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
-                                Text(day, style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
-                                Text(moneyWhole(list.sumOf { it.total }), style = MaterialTheme.typography.titleSmall)
-                            }
-                        }
-                        items(list, key = { it.id }) { b ->
-                            BillRow(Fmt.digits(ReceiptBuilder.billNo(b), bn) + (b.draftLabel?.let { " · $it" } ?: ""), timeFmt.format(Date(b.confirmedAt ?: b.createdAt)), moneyWhole(b.total)) { onOpenReceipt(b.id) }
-                            HorizontalDivider()
+                if (filtered.isEmpty()) item {
+                    PbCard { EmptyBlock(stringResource(R.string.no_bills), icon = Icons.Outlined.Receipt) }
+                }
+                byDay.forEach { (day, list) ->
+                    item(key = "h_$day") {
+                        Row(Modifier.fillMaxWidth().padding(start = 2.dp, end = 2.dp, top = 8.dp, bottom = 8.dp)) {
+                            Text(day.uppercase(), fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp, color = Pb.muted, modifier = Modifier.weight(1f))
+                            Text(moneyWhole(list.sumOf { it.total }), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Pb.ink)
                         }
                     }
+                    itemsIndexed(list, key = { _, b -> b.id }) { i, b ->
+                        ItemRow(
+                            title = Fmt.digits(ReceiptBuilder.billNo(b), bn),
+                            meta = listOfNotNull(b.draftLabel, timeFmt.format(Date(b.confirmedAt ?: b.createdAt))).joinToString(" · "),
+                            modifier = Modifier.groupItem(i == 0, i == list.lastIndex),
+                            leading = { IconTile(Icons.Outlined.Receipt, bg = Pb.medIconBg, tint = Pb.medIcon, size = 42.dp, radius = 14.dp, iconSize = 20.dp) },
+                            trailing = { PriceColumn(moneyWhole(b.total), stringResource(R.string.view)) },
+                            last = i == list.lastIndex,
+                            onClick = { onOpenReceipt(b.id) },
+                        )
+                    }
+                    item(key = "s_$day") { Spacer(Modifier.height(6.dp)) }
                 }
             }
         }
@@ -124,13 +165,3 @@ private fun matches(b: BillEntity, q: String): Boolean {
         (b.billNo?.toString() == t.trimStart('0'))
 }
 
-@Composable
-private fun BillRow(title: String, subtitle: String, amount: String, onClick: () -> Unit) {
-    Row(Modifier.fillMaxWidth().clickable(onClick = onClick).heightIn(min = 64.dp).padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-        Column(Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.titleMedium)
-            Text(subtitle, style = MaterialTheme.typography.bodySmall)
-        }
-        Text(amount, style = MaterialTheme.typography.titleMedium)
-    }
-}

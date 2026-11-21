@@ -27,7 +27,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -45,6 +44,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.pharmabill.app.R
+import androidx.compose.material.icons.outlined.Info
+import com.pharmabill.app.ui.components.NoticeCard
+import com.pharmabill.app.ui.components.PbCardBorder
+import com.pharmabill.app.ui.components.PbCardShape
+import com.pharmabill.app.ui.components.SearchLauncher
+import com.pharmabill.app.ui.components.pbCardColors
+import com.pharmabill.app.ui.components.PbBtnShape
+import com.pharmabill.app.ui.components.PbTopBar
 import com.pharmabill.app.data.db.entities.MedicineEntity
 import com.pharmabill.app.data.repo.MedicineRepository
 import com.pharmabill.app.domain.model.MedicineKind
@@ -107,18 +114,16 @@ fun StockEntryScreen(medicineId: Long?, onBack: () -> Unit, vm: StockEntryViewMo
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            PbTopBar(
                 title = { Text(stringResource(R.string.stock_entry)) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) } },
             )
         },
         snackbarHost = { SnackbarHost(snack) },
     ) { pad ->
-        LazyColumn(Modifier.padding(pad).fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        LazyColumn(Modifier.padding(pad).fillMaxSize().padding(horizontal = 18.dp), contentPadding = androidx.compose.foundation.layout.PaddingValues(top = 18.dp, bottom = 18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             item {
-                OutlinedButton(onClick = { picking = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
-                    Text(selected?.displayName ?: stringResource(R.string.choose_medicine))
-                }
+                SearchLauncher(selected?.displayName ?: stringResource(R.string.choose_medicine), { picking = true })
             }
             selected?.let { m ->
                 item {
@@ -129,6 +134,9 @@ fun StockEntryScreen(medicineId: Long?, onBack: () -> Unit, vm: StockEntryViewMo
                         }
                     }
                 }
+            }
+            if (selected == null) item {
+                NoticeCard(stringResource(R.string.stock_tracked_title), stringResource(R.string.stock_tracked_text), Icons.Outlined.Info)
             }
             if (needs.isNotEmpty()) {
                 item { Text(stringResource(R.string.needs_stock_list), style = MaterialTheme.typography.titleMedium) }
@@ -157,7 +165,7 @@ private fun StockForm(m: MedicineEntity, onSubmit: (SaleUnit, Int, Long?, String
     var qty by remember(m.id) { mutableStateOf("") }
     var exact by remember(m.id) { mutableStateOf("") }
     var note by remember(m.id) { mutableStateOf("") }
-    Card(Modifier.fillMaxWidth()) {
+    Card(Modifier.fillMaxWidth(), shape = PbCardShape, colors = pbCardColors(), border = PbCardBorder) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(m.displayName, style = MaterialTheme.typography.titleLarge)
             Text(
@@ -171,6 +179,7 @@ private fun StockForm(m: MedicineEntity, onSubmit: (SaleUnit, Int, Long?, String
             OutlinedTextField(qty, { qty = it }, Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.quantity)) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), singleLine = true)
             OutlinedTextField(note, { note = it }, Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.note)) }, singleLine = true)
             Button(
+                shape = PbBtnShape,
                 onClick = { Fmt.parseIntLocal(qty)?.takeIf { it > 0 }?.let { onSubmit(unit, it, null, note); qty = "" } },
                 modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
             ) { Text(stringResource(R.string.add_stock)) }
@@ -178,7 +187,7 @@ private fun StockForm(m: MedicineEntity, onSubmit: (SaleUnit, Int, Long?, String
             Text(stringResource(R.string.set_exact_count), style = MaterialTheme.typography.titleSmall)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(exact, { exact = it }, Modifier.weight(1f), label = { Text(stringResource(if (m.kind == MedicineKind.STRIP) R.string.count_in_pieces else R.string.count_in_units)) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), singleLine = true)
-                OutlinedButton(onClick = { exact.trim().let { t -> Fmt.parseIntLocal(t)?.let { onSubmit(unit, 0, it.toLong(), note); exact = "" } } }, modifier = Modifier.heightIn(min = 56.dp)) {
+                OutlinedButton(shape = PbBtnShape, onClick = { exact.trim().let { t -> Fmt.parseIntLocal(t)?.let { onSubmit(unit, 0, it.toLong(), note); exact = "" } } }, modifier = Modifier.heightIn(min = 56.dp)) {
                     Text(stringResource(R.string.set))
                 }
             }

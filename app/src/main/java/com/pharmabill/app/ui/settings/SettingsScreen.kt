@@ -33,7 +33,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -53,6 +52,15 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.pharmabill.app.BuildConfig
 import com.pharmabill.app.R
+import com.pharmabill.app.ui.components.PbBtnShape
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.sp
+import com.pharmabill.app.ui.components.CardTitle
+import com.pharmabill.app.ui.components.PagePadding
+import com.pharmabill.app.ui.components.PbCard
+import com.pharmabill.app.ui.theme.Pb
+import com.pharmabill.app.ui.components.PbTopBar
 import com.pharmabill.app.ai.count.CountingEngineHolder
 import com.pharmabill.app.ai.voice.SpeechEngine
 import com.pharmabill.app.ai.voice.VoiceStatus
@@ -154,14 +162,14 @@ fun SettingsScreen(onBack: () -> Unit, onBackup: () -> Unit, onLanguageChanged: 
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            PbTopBar(
                 title = { Text(stringResource(R.string.settings)) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) } },
             )
         },
         snackbarHost = { SnackbarHost(snackbar) },
     ) { pad ->
-        Column(Modifier.padding(pad).verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.padding(pad).verticalScroll(rememberScrollState()).padding(PagePadding), verticalArrangement = Arrangement.spacedBy(13.dp)) {
             Section(stringResource(R.string.shop_info)) {
                 var name by remember(s.shopName) { mutableStateOf(s.shopName) }
                 var addr by remember(s.shopAddress) { mutableStateOf(s.shopAddress) }
@@ -169,7 +177,7 @@ fun SettingsScreen(onBack: () -> Unit, onBackup: () -> Unit, onLanguageChanged: 
                 OutlinedTextField(name, { name = it }, Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.shop_name)) }, singleLine = true)
                 OutlinedTextField(addr, { addr = it }, Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.shop_address)) }, singleLine = true)
                 OutlinedTextField(phone, { phone = it }, Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.shop_phone)) }, singleLine = true)
-                Button(onClick = { vm.saveShop(name, addr, phone); scope.launch { snackbar.showSnackbar(ctx.getString(R.string.saved)) } }) { Text(stringResource(R.string.save)) }
+                Button(shape = PbBtnShape, onClick = { vm.saveShop(name, addr, phone); scope.launch { snackbar.showSnackbar(ctx.getString(R.string.saved)) } }) { Text(stringResource(R.string.save)) }
             }
             Section(stringResource(R.string.language)) {
                 ChoiceChips(listOf(AppSettings.LANG_BN, AppSettings.LANG_EN), s.language, { if (it == AppSettings.LANG_BN) "বাংলা" else "English" }, { l ->
@@ -178,7 +186,7 @@ fun SettingsScreen(onBack: () -> Unit, onBackup: () -> Unit, onLanguageChanged: 
             }
             Section(stringResource(R.string.printer)) {
                 Text(s.printerName?.let { stringResource(R.string.printer_selected, it) } ?: stringResource(R.string.printer_none))
-                OutlinedButton(onClick = {
+                OutlinedButton(shape = PbBtnShape, onClick = {
                     val p = vm.printerPermissions()
                     if (p.isEmpty()) vm.loadDevices() else btLauncher.launch(p)
                 }) { Text(stringResource(R.string.find_paired_printers)) }
@@ -200,14 +208,14 @@ fun SettingsScreen(onBack: () -> Unit, onBackup: () -> Unit, onLanguageChanged: 
                 Toggle(stringResource(R.string.one_medicine_mode), stringResource(R.string.one_medicine_mode_hint), s.oneMedicineMode, vm::setOneMedicine)
                 Toggle(stringResource(R.string.collect_training_data), stringResource(R.string.collect_training_hint, num(photos), num(samples)), s.collectTrainingData, vm::setCollect)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(onClick = {
+                    Button(shape = PbBtnShape, onClick = {
                         scope.launch {
                             val (intent, n) = vm.export()
                             if (intent == null) snackbar.showSnackbar(ctx.getString(R.string.export_nothing))
                             else ctx.startActivity(Intent.createChooser(intent, ctx.getString(R.string.export_dataset_count, Fmt.number(n.toLong(), bn))))
                         }
                     }) { Text(stringResource(R.string.export_dataset)) }
-                    OutlinedButton(onClick = { scope.launch { val n = vm.clearPhotos(); snackbar.showSnackbar(ctx.getString(R.string.photos_cleared, Fmt.number(n.toLong(), bn))) } }) {
+                    OutlinedButton(shape = PbBtnShape, onClick = { scope.launch { val n = vm.clearPhotos(); snackbar.showSnackbar(ctx.getString(R.string.photos_cleared, Fmt.number(n.toLong(), bn))) } }) {
                         Text(stringResource(R.string.clear_exported_photos))
                     }
                 }
@@ -215,7 +223,7 @@ fun SettingsScreen(onBack: () -> Unit, onBackup: () -> Unit, onLanguageChanged: 
                 if (BuildConfig.DEBUG) {
                     Text(stringResource(R.string.debug_loader_hint), style = MaterialTheme.typography.bodySmall)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedButton(onClick = { modelPicker.launch(arrayOf("*/*")) }) { Text(stringResource(R.string.load_model_from_storage)) }
+                        OutlinedButton(shape = PbBtnShape, onClick = { modelPicker.launch(arrayOf("*/*")) }) { Text(stringResource(R.string.load_model_from_storage)) }
                         if (vm.isDebugOverride) TextButton(onClick = { scope.launch { vm.resetModel() } }) { Text(stringResource(R.string.use_bundled_model)) }
                     }
                 }
@@ -232,7 +240,7 @@ fun SettingsScreen(onBack: () -> Unit, onBackup: () -> Unit, onLanguageChanged: 
                     },
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(onClick = { vm.voiceDownload()?.let { runCatching { ctx.startActivity(it) } } ?: scope.launch { snackbar.showSnackbar(ctx.getString(R.string.voice_download_started)) } }) {
+                    OutlinedButton(shape = PbBtnShape, onClick = { vm.voiceDownload()?.let { runCatching { ctx.startActivity(it) } } ?: scope.launch { snackbar.showSnackbar(ctx.getString(R.string.voice_download_started)) } }) {
                         Text(stringResource(R.string.voice_download_pack))
                     }
                     TextButton(onClick = vm::refreshVoice) { Text(stringResource(R.string.refresh)) }
@@ -244,30 +252,27 @@ fun SettingsScreen(onBack: () -> Unit, onBackup: () -> Unit, onLanguageChanged: 
                 Slider(value = s.draftReminderHours.toFloat(), onValueChange = { vm.setReminder(it.toInt()) }, valueRange = 1f..48f, steps = 46)
             }
             Section(stringResource(R.string.backup_restore)) {
-                Button(onClick = onBackup) { Text(stringResource(R.string.backup_restore)) }
+                Button(shape = PbBtnShape, onClick = onBackup) { Text(stringResource(R.string.backup_restore)) }
             }
-            Text(stringResource(R.string.app_version, BuildConfig.VERSION_NAME), style = MaterialTheme.typography.bodySmall)
+            Text(stringResource(R.string.app_version, BuildConfig.VERSION_NAME), Modifier.fillMaxWidth(), fontSize = 11.sp, color = Pb.muted, textAlign = TextAlign.Center)
         }
     }
 }
 
 @Composable
 private fun Section(title: String, content: @Composable () -> Unit) {
-    Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(title, style = MaterialTheme.typography.titleMedium)
-            HorizontalDivider()
-            content()
-        }
+    PbCard {
+        CardTitle(title)
+        Column(Modifier.padding(top = 12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) { content() }
     }
 }
 
 @Composable
 private fun Toggle(title: String, subtitle: String?, checked: Boolean, onChange: (Boolean) -> Unit) {
     Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
-        Column(Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.bodyLarge)
-            subtitle?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+        Column(Modifier.weight(1f).padding(end = 10.dp)) {
+            Text(title, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Pb.ink)
+            subtitle?.let { Text(it, Modifier.padding(top = 3.dp), fontSize = 12.sp, color = Pb.muted) }
         }
         Switch(checked, onChange)
     }

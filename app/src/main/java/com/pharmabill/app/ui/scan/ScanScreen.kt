@@ -33,7 +33,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -54,6 +53,16 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pharmabill.app.R
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import com.pharmabill.app.ui.components.FlagPill
+import com.pharmabill.app.ui.components.PbCardBorder
+import com.pharmabill.app.ui.components.PbCardShape
+import com.pharmabill.app.ui.components.TextTile
+import com.pharmabill.app.ui.components.pbCardColors
+import com.pharmabill.app.ui.theme.Pb
+import com.pharmabill.app.ui.components.PbBtnShape
+import com.pharmabill.app.ui.components.PbTopBar
 import com.pharmabill.app.domain.model.Flag
 import com.pharmabill.app.domain.model.MedicineKind
 import com.pharmabill.app.domain.model.SaleUnit
@@ -82,7 +91,7 @@ fun ScanScreen(onBack: () -> Unit, onRetake: () -> Unit, onAdded: (Int) -> Unit,
     var quickAddFor by remember { mutableStateOf<Pair<Int, String?>?>(null) }
 
     Scaffold(topBar = {
-        TopAppBar(
+        PbTopBar(
             title = { Text(stringResource(R.string.scan_result)) },
             navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) } },
             actions = { TextButton(onClick = onRetake) { Text(stringResource(R.string.retake)) } },
@@ -95,14 +104,14 @@ fun ScanScreen(onBack: () -> Unit, onRetake: () -> Unit, onAdded: (Int) -> Unit,
             }
             is ScanUi.Error -> Column(Modifier.padding(pad).padding(24.dp)) {
                 Text(stringResource(R.string.scan_failed, s.message))
-                Button(onClick = onRetake) { Text(stringResource(R.string.retake)) }
+                Button(shape = PbBtnShape, onClick = onRetake) { Text(stringResource(R.string.retake)) }
             }
             is ScanUi.Ready -> {
                 val canAdd = s.lines.any { it.medicine != null }
-                LazyColumn(Modifier.padding(pad).fillMaxSize(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                LazyColumn(Modifier.padding(pad).fillMaxSize(), contentPadding = androidx.compose.foundation.layout.PaddingValues(top = 14.dp, bottom = 12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     item { PhotoWithBoxes(s) }
                     if (s.blurry) item {
-                        Card(Modifier.fillMaxWidth().padding(horizontal = 12.dp), colors = CardDefaults.cardColors(containerColor = FlagColors.yellow.copy(alpha = 0.25f))) {
+                        Card(Modifier.fillMaxWidth().padding(horizontal = 18.dp), shape = PbCardShape, colors = pbCardColors(Pb.warnBg), border = androidx.compose.foundation.BorderStroke(1.dp, Pb.warnBorder)) {
                             Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                                 Text(stringResource(R.string.photo_blurry), Modifier.weight(1f))
                                 TextButton(onClick = onRetake) { Text(stringResource(R.string.retake)) }
@@ -110,7 +119,7 @@ fun ScanScreen(onBack: () -> Unit, onRetake: () -> Unit, onAdded: (Int) -> Unit,
                         }
                     }
                     item {
-                        Row(Modifier.padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Row(Modifier.padding(horizontal = 18.dp), verticalAlignment = Alignment.CenterVertically) {
                             Text(
                                 stringResource(R.string.scan_meta, s.output.modelVersion, num(s.output.elapsedMs)),
                                 style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f),
@@ -134,9 +143,10 @@ fun ScanScreen(onBack: () -> Unit, onRetake: () -> Unit, onAdded: (Int) -> Unit,
                     }
                     item {
                         Button(
+                            shape = PbBtnShape,
                             onClick = { scope.launch { onAdded(vm.addToDraft()) } },
                             enabled = canAdd,
-                            modifier = Modifier.fillMaxWidth().padding(12.dp).heightIn(min = 56.dp),
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 12.dp).heightIn(min = 52.dp),
                         ) { Text(stringResource(R.string.add_to_draft)) }
                     }
                 }
@@ -157,7 +167,7 @@ fun ScanScreen(onBack: () -> Unit, onRetake: () -> Unit, onAdded: (Int) -> Unit,
 private fun PhotoWithBoxes(s: ScanUi.Ready) {
     val img = s.image ?: return
     val bitmap = remember(img) { img.asImageBitmap() }
-    BoxWithConstraints(Modifier.fillMaxWidth().padding(horizontal = 12.dp).aspectRatio(img.width.toFloat() / img.height.coerceAtLeast(1))) {
+    BoxWithConstraints(Modifier.fillMaxWidth().padding(horizontal = 18.dp).clip(RoundedCornerShape(16.dp)).aspectRatio(img.width.toFloat() / img.height.coerceAtLeast(1))) {
         Image(bitmap, null, Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
         val density = LocalDensity.current
         val scale = with(density) { maxWidth.toPx() } / s.output.imageWidth.coerceAtLeast(1)
@@ -192,12 +202,13 @@ private fun ScanLineCard(
     val ctx = LocalContext.current
     val bn = LocalBangla.current
     val m = l.medicine
-    Card(Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
-        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Card(Modifier.fillMaxWidth().padding(horizontal = 18.dp), shape = PbCardShape, colors = pbCardColors(), border = PbCardBorder) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                FlagBadge(l.flag)
-                Column(Modifier.weight(1f).padding(start = 10.dp)) {
+                TextTile("✚")
+                Column(Modifier.weight(1f).padding(start = 11.dp)) {
                     Text(m?.displayName ?: stringResource(R.string.unknown_medicine_pcs, num(l.ai.detectedCount)), style = MaterialTheme.typography.titleMedium)
+                    FlagPill(l.flag, Modifier.padding(vertical = 4.dp))
                     if (m != null) Text(QtyText.plain(ctx, l.unit, l.quantity, m.piecesPerStrip, bn) + " · " + money(l.lineTotal), style = MaterialTheme.typography.bodyLarge)
                     if (m != null && !m.priceVerified) CheckPriceBadge()
                     l.ai.ocrText?.let { Text(stringResource(R.string.ocr_saw, it), style = MaterialTheme.typography.bodySmall, maxLines = 2) }
@@ -213,8 +224,8 @@ private fun ScanLineCard(
                 }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = onSearch, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.search)) }
-                if (m == null || l.flag == Flag.RED) OutlinedButton(onClick = onQuickAdd, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.quick_add)) }
+                OutlinedButton(shape = PbBtnShape, onClick = onSearch, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.search)) }
+                if (m == null || l.flag == Flag.RED) OutlinedButton(shape = PbBtnShape, onClick = onQuickAdd, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.quick_add)) }
             }
             if (m != null) {
                 if (m.kind == MedicineKind.STRIP) {
@@ -241,7 +252,7 @@ private fun ScanLineCard(
                     if (m.kind == MedicineKind.STRIP) ChoiceChips(listOf(SaleUnit.PIECE, SaleUnit.STRIP, SaleUnit.BOX), l.unit, { unitLabel(it) }, onUnit)
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         Stepper(num(l.quantity), onMinus = { onStep(-1) }, onPlus = { onStep(1) })
-                        if (l.flag == Flag.YELLOW) Button(onClick = onCheck, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.mark_checked)) }
+                        if (l.flag == Flag.YELLOW) Button(shape = PbBtnShape, onClick = onCheck, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.mark_checked)) }
                     }
                 }
             }

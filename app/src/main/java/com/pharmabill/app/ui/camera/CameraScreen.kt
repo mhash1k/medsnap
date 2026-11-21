@@ -63,6 +63,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.pharmabill.app.R
+import com.pharmabill.app.ui.components.PbBtnShape
 import com.pharmabill.app.ai.image.ImageQuality
 import com.pharmabill.app.data.prefs.SettingsStore
 import com.pharmabill.app.ui.theme.FlagColors
@@ -141,7 +142,7 @@ fun CameraScreen(onCaptured: (String) -> Unit, onBack: () -> Unit, vm: CameraVie
         if (granted) CameraContent(vm, onCaptured) else {
             Column(Modifier.align(Alignment.Center).padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(stringResource(R.string.camera_permission), color = Color.White)
-                Button(onClick = { launcher.launch(Manifest.permission.CAMERA) }) { Text(stringResource(R.string.grant)) }
+                Button(shape = PbBtnShape, onClick = { launcher.launch(Manifest.permission.CAMERA) }) { Text(stringResource(R.string.grant)) }
             }
         }
         IconButton(onClick = onBack, modifier = Modifier.padding(8.dp).background(Color.Black.copy(alpha = 0.4f), CircleShape)) {

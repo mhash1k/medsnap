@@ -24,7 +24,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -40,6 +39,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.pharmabill.app.R
+import com.pharmabill.app.ui.components.PbBtnShape
+import com.pharmabill.app.ui.components.PbTopBar
 import com.pharmabill.app.ai.ocr.TextNormalizer
 import com.pharmabill.app.data.db.entities.MedicineEntity
 import com.pharmabill.app.data.repo.MedicineRepository
@@ -203,7 +204,7 @@ fun MedicineEditScreen(id: Long?, onBack: () -> Unit, vm: MedicineEditViewModel 
     val s by vm.state.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     Scaffold(topBar = {
-        TopAppBar(
+        PbTopBar(
             title = { Text(stringResource(if (id == null || id == 0L) R.string.add_medicine else R.string.edit_medicine)) },
             navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) } },
         )
@@ -211,7 +212,7 @@ fun MedicineEditScreen(id: Long?, onBack: () -> Unit, vm: MedicineEditViewModel 
         Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
             if (s.loaded) {
                 MedicineFormFields(s) { f -> vm.update(f) }
-                Button(onClick = { scope.launch { if (vm.save() != null) onBack() } }, modifier = Modifier.fillMaxWidth().padding(top = 16.dp).heightIn(min = 52.dp)) {
+                Button(shape = PbBtnShape, onClick = { scope.launch { if (vm.save() != null) onBack() } }, modifier = Modifier.fillMaxWidth().padding(top = 16.dp).heightIn(min = 52.dp)) {
                     Text(stringResource(R.string.save))
                 }
             }
@@ -235,7 +236,7 @@ fun QuickAddDialog(ocrText: String?, onDismiss: () -> Unit, onSaved: (Long) -> U
                 if (!ocrText.isNullOrBlank()) Text(stringResource(R.string.ocr_saw, ocrText), style = MaterialTheme.typography.bodySmall)
                 if (s.loaded) {
                     MedicineFormFields(s) { f -> vm.update(f) }
-                    Button(onClick = { scope.launch { vm.save()?.let(onSaved) } }, modifier = Modifier.fillMaxWidth().padding(top = 16.dp).heightIn(min = 52.dp)) {
+                    Button(shape = PbBtnShape, onClick = { scope.launch { vm.save()?.let(onSaved) } }, modifier = Modifier.fillMaxWidth().padding(top = 16.dp).heightIn(min = 52.dp)) {
                         Text(stringResource(R.string.save_and_add))
                     }
                 }

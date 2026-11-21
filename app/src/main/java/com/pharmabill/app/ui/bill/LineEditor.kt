@@ -30,6 +30,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.pharmabill.app.R
+import com.pharmabill.app.ui.components.PbBtnShape
 import com.pharmabill.app.data.db.entities.BillLineEntity
 import com.pharmabill.app.data.db.entities.MedicineEntity
 import com.pharmabill.app.domain.model.SaleUnit
@@ -90,7 +91,7 @@ fun LineEditorDialog(
                         }
                     }
                 }
-                OutlinedButton(onClick = { searching = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text(stringResource(R.string.search)) }
+                OutlinedButton(shape = PbBtnShape, onClick = { searching = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text(stringResource(R.string.search)) }
                 val m = med
                 if (m != null) {
                     if (boxMode) {
@@ -117,7 +118,7 @@ fun LineEditorDialog(
             }
         },
         confirmButton = {
-            Button(onClick = { med?.let { onSave(it, unit, qty) } }, enabled = med != null && !boxMode) { Text(stringResource(R.string.mark_checked)) }
+            Button(shape = PbBtnShape, onClick = { med?.let { onSave(it, unit, qty) } }, enabled = med != null && !boxMode) { Text(stringResource(R.string.mark_checked)) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
     )

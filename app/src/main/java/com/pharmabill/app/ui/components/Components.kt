@@ -114,44 +114,35 @@ fun FlagBadge(flag: Flag, modifier: Modifier = Modifier, size: Int = 32) {
             .semantics { contentDescription = desc },
         contentAlignment = Alignment.Center,
     ) {
-        Text(glyph, color = if (flag == Flag.YELLOW) Color.Black else Color.White, fontWeight = FontWeight.Bold, fontSize = (size * 0.55f).sp)
+        Text(glyph, color = if (flag == Flag.YELLOW) Color(0xFF3D2A00) else Color.White, fontWeight = FontWeight.Bold, fontSize = (size * 0.55f).sp)
+    }
+}
+
+/** Flag as a soft pill: "✓ Checked", "? Check", "✕ Fix". */
+@Composable
+fun FlagPill(flag: Flag, modifier: Modifier = Modifier) {
+    when (flag) {
+        Flag.GREEN -> PillBadge("✓ " + stringResource(R.string.flag_pill_green), Tone.GREEN, modifier)
+        Flag.YELLOW -> PillBadge("? " + stringResource(R.string.flag_pill_yellow), Tone.YELLOW, modifier)
+        Flag.RED -> PillBadge("✕ " + stringResource(R.string.flag_pill_red), Tone.RED, modifier)
     }
 }
 
 @Composable
-fun CheckPriceBadge(modifier: Modifier = Modifier) {
-    Text(
-        stringResource(R.string.check_price),
-        modifier
-            .border(1.dp, FlagColors.yellow, RoundedCornerShape(6.dp))
-            .background(FlagColors.yellow.copy(alpha = 0.15f), RoundedCornerShape(6.dp))
-            .padding(horizontal = 6.dp, vertical = 2.dp),
-        style = MaterialTheme.typography.labelSmall,
-        color = Color(0xFF7A5A00),
-    )
-}
+fun CheckPriceBadge(modifier: Modifier = Modifier) = PillBadge(stringResource(R.string.check_price), Tone.YELLOW, modifier)
 
 @Composable
-fun NeedsStockBadge(modifier: Modifier = Modifier) {
-    Text(
-        stringResource(R.string.needs_stock_entry),
-        modifier
-            .background(FlagColors.red.copy(alpha = 0.12f), RoundedCornerShape(6.dp))
-            .padding(horizontal = 6.dp, vertical = 2.dp),
-        style = MaterialTheme.typography.labelSmall,
-        color = FlagColors.red,
-    )
-}
+fun NeedsStockBadge(modifier: Modifier = Modifier) = PillBadge(stringResource(R.string.needs_stock_entry), Tone.RED, modifier)
 
 @Composable
 fun Stepper(value: String, onMinus: () -> Unit, onPlus: () -> Unit, modifier: Modifier = Modifier) {
     Row(modifier, verticalAlignment = Alignment.CenterVertically) {
-        FilledTonalIconButton(onClick = onMinus, modifier = Modifier.size(48.dp)) {
+        FilledTonalIconButton(onClick = onMinus, modifier = Modifier.size(48.dp), shape = RoundedCornerShape(12.dp), colors = androidx.compose.material3.IconButtonDefaults.filledTonalIconButtonColors(containerColor = com.pharmabill.app.ui.theme.Pb.surface2, contentColor = com.pharmabill.app.ui.theme.Pb.tonalInk)) {
             Icon(Icons.Filled.Remove, contentDescription = stringResource(R.string.decrease))
         }
         Text(value, Modifier.width(72.dp).padding(horizontal = 4.dp), style = MaterialTheme.typography.titleLarge, maxLines = 2,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-        FilledTonalIconButton(onClick = onPlus, modifier = Modifier.size(48.dp)) {
+        FilledTonalIconButton(onClick = onPlus, modifier = Modifier.size(48.dp), shape = RoundedCornerShape(12.dp), colors = androidx.compose.material3.IconButtonDefaults.filledTonalIconButtonColors(containerColor = com.pharmabill.app.ui.theme.Pb.surface2, contentColor = com.pharmabill.app.ui.theme.Pb.tonalInk)) {
             Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.increase))
         }
     }
@@ -162,7 +153,7 @@ fun draftTitle(c: Context, b: BillEntity, bangla: Boolean): String {
     return if (b.draftLabel.isNullOrBlank()) n else "$n · ${b.draftLabel}"
 }
 
-/** Chip bar of open drafts; tap to switch the active one. */
+/** Row of open-draft pills; tap to switch the active one. */
 @Composable
 fun DraftChipsBar(
     drafts: List<BillEntity>,
@@ -175,24 +166,15 @@ fun DraftChipsBar(
     val c = androidx.compose.ui.platform.LocalContext.current
     val bn = LocalBangla.current
     val now = System.currentTimeMillis()
-    Row(modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Row(modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         drafts.forEach { d ->
             val old = now - d.createdAt > reminderHours * 3_600_000L
-            FilterChip(
-                selected = d.id == activeId,
-                onClick = { onSelect(d.id) },
-                label = {
-                    Text(draftTitle(c, d, bn) + (if (d.total > 0) " · " + Fmt.takaWhole(d.total, bn) else "") + if (old) " ⏰" else "")
-                },
-                modifier = Modifier.height(48.dp),
-            )
+            DraftPill(
+                draftTitle(c, d, bn) + (if (d.total > 0) " · " + Fmt.takaWhole(d.total, bn) else "") + if (old) " ⏰" else "",
+                active = d.id == activeId,
+            ) { onSelect(d.id) }
         }
-        AssistChip(
-            onClick = onNew,
-            label = { Text(stringResource(R.string.new_draft)) },
-            leadingIcon = { Icon(Icons.Filled.Add, null, Modifier.size(AssistChipDefaults.IconSize)) },
-            modifier = Modifier.height(48.dp),
-        )
+        DraftPill("+ " + stringResource(R.string.new_draft), active = false, onClick = onNew)
     }
 }
 
@@ -203,9 +185,7 @@ fun Loading(modifier: Modifier = Modifier) {
 
 @Composable
 fun EmptyState(text: String, modifier: Modifier = Modifier) {
-    Box(modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-        Text(text, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-    }
+    EmptyBlock(text, modifier = modifier)
 }
 
 @Composable

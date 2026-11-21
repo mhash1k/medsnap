@@ -25,7 +25,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,6 +38,21 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import com.pharmabill.app.R
+import androidx.compose.material.icons.outlined.CloudUpload
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.sp
+import com.pharmabill.app.ui.components.CardTitle
+import com.pharmabill.app.ui.components.IconTile
+import com.pharmabill.app.ui.components.PagePadding
+import com.pharmabill.app.ui.components.PbButton
+import com.pharmabill.app.ui.components.PbCard
+import com.pharmabill.app.ui.components.PbSecondaryButton
+import com.pharmabill.app.ui.theme.Pb
+import com.pharmabill.app.ui.components.PbBtnShape
+import com.pharmabill.app.ui.components.PbTopBar
 import com.pharmabill.app.data.backup.BackupManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -66,25 +80,31 @@ fun BackupScreen(onBack: () -> Unit, vm: BackupViewModel = hiltViewModel()) {
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            PbTopBar(
                 title = { Text(stringResource(R.string.backup_restore)) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) } },
             )
         },
         snackbarHost = { SnackbarHost(snackbar) },
     ) { pad ->
-        Column(Modifier.padding(pad).padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            Text(stringResource(R.string.backup_hint), style = MaterialTheme.typography.bodyLarge)
-            Button(onClick = {
-                val name = "pharmabill_backup_" + SimpleDateFormat("yyyyMMdd_HHmm", Locale.US).format(Date()) + ".zip"
-                create.launch(name)
-            }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                Icon(Icons.Filled.Backup, null); Text(stringResource(R.string.backup_now), Modifier.padding(start = 8.dp))
+        Column(Modifier.padding(pad).padding(PagePadding), verticalArrangement = Arrangement.spacedBy(13.dp)) {
+            PbCard {
+                Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    IconTile(Icons.Outlined.CloudUpload, bg = Pb.surface2, tint = Color(0xFF7B8796), size = 54.dp, radius = 18.dp, iconSize = 26.dp)
+                    Text(stringResource(R.string.data_on_device), Modifier.padding(top = 12.dp), fontSize = 15.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+                    Text(stringResource(R.string.backup_hint), Modifier.padding(top = 4.dp), fontSize = 12.sp, color = Pb.muted, textAlign = TextAlign.Center)
+                }
+                PbButton(stringResource(R.string.backup_now), {
+                    val name = "pharmabill_backup_" + SimpleDateFormat("yyyyMMdd_HHmm", Locale.US).format(Date()) + ".zip"
+                    create.launch(name)
+                }, Modifier.fillMaxWidth().padding(top = 16.dp), icon = Icons.Filled.Backup)
             }
-            OutlinedButton(onClick = { open.launch(arrayOf("application/zip", "application/octet-stream", "*/*")) }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                Icon(Icons.Filled.Restore, null); Text(stringResource(R.string.restore_from_file), Modifier.padding(start = 8.dp))
+            PbCard {
+                CardTitle(stringResource(R.string.restore_from_file), sub = stringResource(R.string.restore_hint))
+                PbSecondaryButton(stringResource(R.string.restore_from_file), {
+                    open.launch(arrayOf("application/zip", "application/octet-stream", "*/*"))
+                }, Modifier.fillMaxWidth().padding(top = 14.dp), icon = Icons.Filled.Restore)
             }
-            Text(stringResource(R.string.restore_hint), style = MaterialTheme.typography.bodySmall)
         }
     }
     pendingRestore?.let { uri ->
@@ -93,7 +113,7 @@ fun BackupScreen(onBack: () -> Unit, vm: BackupViewModel = hiltViewModel()) {
             title = { Text(stringResource(R.string.restore_from_file)) },
             text = { Text(stringResource(R.string.restore_confirm)) },
             confirmButton = {
-                Button(onClick = {
+                Button(shape = PbBtnShape, onClick = {
                     pendingRestore = null
                     scope.launch { if (!vm.restore(uri)) snackbar.showSnackbar(ctx.getString(R.string.restore_failed)) }
                 }) { Text(stringResource(R.string.restore)) }

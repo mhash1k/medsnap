@@ -33,7 +33,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -52,6 +51,21 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.pharmabill.app.R
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.outlined.WarningAmber
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import com.pharmabill.app.ui.components.IconTile
+import com.pharmabill.app.ui.components.NoticeCard
+import com.pharmabill.app.ui.components.PagePadding
+import com.pharmabill.app.ui.theme.Pb
+import com.pharmabill.app.ui.components.PbBtnShape
+import com.pharmabill.app.ui.components.PbTopBar
 import com.pharmabill.app.data.db.entities.MedicineEntity
 import com.pharmabill.app.data.prefs.SettingsStore
 import com.pharmabill.app.data.repo.BillRepository
@@ -154,7 +168,7 @@ fun ReceiptScreen(onBack: () -> Unit, onNewBill: (Long) -> Unit, onStock: (Long)
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            PbTopBar(
                 title = { Text(stringResource(R.string.receipt)) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) } },
             )
@@ -163,20 +177,31 @@ fun ReceiptScreen(onBack: () -> Unit, onNewBill: (Long) -> Unit, onStock: (Long)
     ) { pad ->
         val u = ui
         if (u == null) Loading(Modifier.padding(pad)) else {
-            Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Image(u.preview.asImageBitmap(), stringResource(R.string.receipt), Modifier.width(300.dp).border(1.dp, Color.LightGray))
+            Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(PagePadding), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(Modifier.padding(top = 4.dp, bottom = 4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    IconTile(Icons.Filled.Check, bg = Pb.greenSoft, tint = Pb.green, size = 54.dp, radius = 18.dp, iconSize = 28.dp)
+                    Text(stringResource(R.string.bill_confirmed), Modifier.padding(top = 12.dp), fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.bill_saved_sub), Modifier.padding(top = 4.dp), fontSize = 13.sp, color = Pb.muted)
+                }
+                Box(
+                    Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color.White).border(1.dp, Color(0xFFCDD4DF), RoundedCornerShape(12.dp)).padding(14.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Image(u.preview.asImageBitmap(), stringResource(R.string.receipt), Modifier.width(300.dp))
+                }
                 if (u.negative.isNotEmpty()) {
-                    Text(stringResource(R.string.sold_without_stock), style = MaterialTheme.typography.titleMedium)
+                    NoticeCard(stringResource(R.string.sold_without_stock), stringResource(R.string.sold_without_stock_hint), Icons.Outlined.WarningAmber, warn = true)
                     u.negative.forEach { m ->
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(m.displayName)
                             NeedsStockBadge()
-                            OutlinedButton(onClick = { onStock(m.id) }) { Text(stringResource(R.string.stock_entry)) }
+                            OutlinedButton(shape = PbBtnShape, onClick = { onStock(m.id) }) { Text(stringResource(R.string.stock_entry)) }
                         }
                     }
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Button(
+                    FilledTonalButton(
+                        shape = PbBtnShape,
                         onClick = {
                             val perms = vm.printPermissions()
                             if (perms.isEmpty() || perms.all { androidx.core.content.ContextCompat.checkSelfPermission(ctx, it) == android.content.pm.PackageManager.PERMISSION_GRANTED }) doPrint()
@@ -185,12 +210,12 @@ fun ReceiptScreen(onBack: () -> Unit, onNewBill: (Long) -> Unit, onStock: (Long)
                         enabled = vm.hasPrinter(),
                         modifier = Modifier.weight(1f).heightIn(min = 56.dp),
                     ) { Icon(Icons.Filled.Print, null); Text(stringResource(R.string.print), Modifier.padding(start = 6.dp)) }
-                    Button(onClick = {
+                    FilledTonalButton(shape = PbBtnShape, onClick = {
                         scope.launch { vm.pdf()?.let { ctx.startActivity(Intent.createChooser(it, ctx.getString(R.string.share_pdf))) } }
                     }, modifier = Modifier.weight(1f).heightIn(min = 56.dp)) { Icon(Icons.Filled.Share, null); Text(stringResource(R.string.share_pdf), Modifier.padding(start = 6.dp)) }
                 }
                 if (!vm.hasPrinter()) Text(stringResource(R.string.no_printer_hint), style = MaterialTheme.typography.bodySmall)
-                OutlinedButton(onClick = { scope.launch { onNewBill(vm.newBill()) } }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) { Text(stringResource(R.string.new_bill)) }
+                Button(shape = PbBtnShape, onClick = { scope.launch { onNewBill(vm.newBill()) } }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) { Text(stringResource(R.string.new_bill)) }
             }
         }
     }
