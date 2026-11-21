@@ -33,7 +33,9 @@ import com.pharmabill.app.R
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.ui.unit.sp
+import com.pharmabill.app.ui.components.BdPhoneField
 import com.pharmabill.app.ui.components.BrandMark
+import com.pharmabill.app.util.BdPhone
 import com.pharmabill.app.ui.components.PageHeader
 import com.pharmabill.app.ui.components.PagePadding
 import com.pharmabill.app.ui.theme.Pb
@@ -84,10 +86,9 @@ fun ShopSetupScreen(onDone: () -> Unit, vm: SetupViewModel = hiltViewModel()) {
         PageHeader(stringResource(R.string.shop_setup), stringResource(R.string.shop_setup_hint))
         OutlinedTextField(name, { name = it }, Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.shop_name)) }, singleLine = true)
         OutlinedTextField(address, { address = it }, Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.shop_address)) }, singleLine = true)
-        OutlinedTextField(phone, { phone = it }, Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.shop_phone)) }, singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone))
+        BdPhoneField(phone, { phone = it })
         Text(stringResource(if (seedDone) R.string.seed_ready else R.string.seed_importing), style = MaterialTheme.typography.bodySmall)
-        Button(shape = PbBtnShape, onClick = { scope.launch { vm.finish(name, address, phone); onDone() } }, enabled = name.isNotBlank(), modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+        Button(shape = PbBtnShape, onClick = { scope.launch { vm.finish(name, address, phone); onDone() } }, enabled = name.isNotBlank() && BdPhone.isValid(phone), modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
             Text(stringResource(R.string.start_billing))
         }
     }

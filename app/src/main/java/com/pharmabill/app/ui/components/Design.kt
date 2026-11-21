@@ -582,3 +582,45 @@ fun pbCardColors(container: Color = Color.White) = androidx.compose.material3.Ca
 
 /** Standard page padding used by every screen (reference: 18dp sides). */
 val PagePadding = PaddingValues(start = 18.dp, end = 18.dp, top = 18.dp, bottom = 24.dp)
+
+/* ---------- Bangladeshi phone number ---------- */
+
+/**
+ * Phone field that only takes a Bangladeshi mobile number: digits only (Bangla digits converted),
+ * "+88" shown in front, capped at 11 digits, with a live hint or error under it.
+ */
+@Composable
+fun BdPhoneField(value: String, onChange: (String) -> Unit, modifier: Modifier = Modifier, label: String = stringResource(R.string.shop_phone)) {
+    val problem = com.pharmabill.app.util.BdPhone.problem(value)
+    val showError = problem == com.pharmabill.app.util.BdPhone.Problem.NOT_01 || problem == com.pharmabill.app.util.BdPhone.Problem.BAD_OPERATOR
+    androidx.compose.material3.OutlinedTextField(
+        value = value,
+        onValueChange = { onChange(com.pharmabill.app.util.BdPhone.clean(it)) },
+        modifier = modifier.fillMaxWidth(),
+        label = { Text(label) },
+        prefix = { Text("+88 ", color = Pb.muted) },
+        placeholder = { Text("01XXXXXXXXX") },
+        singleLine = true,
+        isError = showError,
+        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Phone),
+        supportingText = {
+            Row(Modifier.fillMaxWidth()) {
+                Text(
+                    when (problem) {
+                        com.pharmabill.app.util.BdPhone.Problem.NOT_01 -> stringResource(R.string.phone_err_01)
+                        com.pharmabill.app.util.BdPhone.Problem.BAD_OPERATOR -> stringResource(R.string.phone_err_operator)
+                        null -> stringResource(R.string.phone_ok)
+                        else -> stringResource(R.string.phone_hint)
+                    },
+                    Modifier.weight(1f),
+                    color = when {
+                        showError -> Pb.red
+                        problem == null -> Pb.green
+                        else -> Pb.muted
+                    },
+                )
+                Text("${value.length}/${com.pharmabill.app.util.BdPhone.LENGTH}", color = Pb.muted)
+            }
+        },
+    )
+}

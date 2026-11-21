@@ -56,7 +56,9 @@ import com.pharmabill.app.ui.components.PbBtnShape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
+import com.pharmabill.app.ui.components.BdPhoneField
 import com.pharmabill.app.ui.components.CardTitle
+import com.pharmabill.app.util.BdPhone
 import com.pharmabill.app.ui.components.PagePadding
 import com.pharmabill.app.ui.components.PbCard
 import com.pharmabill.app.ui.theme.Pb
@@ -173,11 +175,15 @@ fun SettingsScreen(onBack: () -> Unit, onBackup: () -> Unit, onLanguageChanged: 
             Section(stringResource(R.string.shop_info)) {
                 var name by remember(s.shopName) { mutableStateOf(s.shopName) }
                 var addr by remember(s.shopAddress) { mutableStateOf(s.shopAddress) }
-                var phone by remember(s.shopPhone) { mutableStateOf(s.shopPhone) }
+                var phone by remember(s.shopPhone) { mutableStateOf(BdPhone.clean(s.shopPhone)) }
                 OutlinedTextField(name, { name = it }, Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.shop_name)) }, singleLine = true)
                 OutlinedTextField(addr, { addr = it }, Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.shop_address)) }, singleLine = true)
-                OutlinedTextField(phone, { phone = it }, Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.shop_phone)) }, singleLine = true)
-                Button(shape = PbBtnShape, onClick = { vm.saveShop(name, addr, phone); scope.launch { snackbar.showSnackbar(ctx.getString(R.string.saved)) } }) { Text(stringResource(R.string.save)) }
+                BdPhoneField(phone, { phone = it })
+                Button(
+                    shape = PbBtnShape,
+                    enabled = phone.isEmpty() || BdPhone.isValid(phone),
+                    onClick = { vm.saveShop(name, addr, BdPhone.clean(phone)); scope.launch { snackbar.showSnackbar(ctx.getString(R.string.saved)) } },
+                ) { Text(stringResource(R.string.save)) }
             }
             Section(stringResource(R.string.language)) {
                 ChoiceChips(listOf(AppSettings.LANG_BN, AppSettings.LANG_EN), s.language, { if (it == AppSettings.LANG_BN) "বাংলা" else "English" }, { l ->

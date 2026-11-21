@@ -69,16 +69,29 @@ class ScanPhotoUseCase @Inject constructor(
             ocr.await() to det.await()
         }
         val snap = matcher.current()
-        val fullText = blocks.joinToString(" ") { it.text }
-        val names = blocks.mapNotNull { b ->
-            val useful = b.lines.filterNot { TextNormalizer.isNoise(it.text) }
-            if (useful.isEmpty()) return@mapNotNull null
-            val text = useful.joinToString(" ") { it.text }
-            val cands = snap.matcher.matchOcrBlock(text, fullText)
-            if (cands.isEmpty()) null else NameHit(b.box, cands, text)
-        }
         val oneMode = oneMedicineOverride ?: s.oneMedicineMode
-        val grouped = DetectionGrouper.group(dets, names, bitmap.width, bitmap.height, oneMode)
+        val usefulLines = blocks.flatMap { b -> b.lines.filterNot { TextNormalizer.isNoise(it.text) } }
+        val pieceGroups = DetectionGrouper.cluster(dets)
+        val grouped = if (oneMode || pieceGroups.size <= 1) {
+            // One medicine in the photo (always the case until a counting model is loaded):
+            // read all the text together and pick the single best medicine, with alternatives if unsure.
+            val cands = snap.matcher.identify(usefulLines.map { it.text })
+            val name = if (cands.isEmpty() || usefulLines.isEmpty()) null else NameHit(
+                usefulLines.map { it.box }.reduce { a, b -> a.union(b) },
+                cands,
+                usefulLines.joinToString(" ") { it.text },
+            )
+            DetectionGrouper.group(dets, listOfNotNull(name), bitmap.width, bitmap.height, oneMedicineMode = true)
+        } else {
+            // Several separate piles of tablets: name each pile from the text printed next to it.
+            val names = blocks.mapNotNull { b ->
+                val useful = b.lines.filterNot { TextNormalizer.isNoise(it.text) }
+                val cands = snap.matcher.identify(useful.map { it.text })
+                if (cands.isEmpty()) null else NameHit(b.box, cands, useful.joinToString(" ") { it.text })
+            }
+            DetectionGrouper.group(dets, names, bitmap.width, bitmap.height, oneMedicineMode = false)
+                .filter { it.group != null || (it.name?.topScore ?: 0.0) >= s.thresholds.green }
+        }
         val lines = ScanAssembler(FlagEvaluator(s.thresholds)) { id -> snap.medicines[id]?.toInfo() }
             .assemble(grouped, engine.isAvailable)
             .let { l -> if (l.isEmpty()) listOf(emptyLine(engine.isAvailable)) else l }

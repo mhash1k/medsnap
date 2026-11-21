@@ -99,6 +99,7 @@ import com.pharmabill.app.ui.components.num
 import com.pharmabill.app.ui.theme.Pb
 import com.pharmabill.app.ui.voice.VoiceHelperFactory
 import com.pharmabill.app.ui.voice.VoiceOutcomeEffects
+import com.pharmabill.app.ui.voice.rememberVoiceToggle
 import com.pharmabill.app.util.Fmt
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -175,6 +176,7 @@ fun HomeScreen(
     val ctx = LocalContext.current
     val bn = LocalBangla.current
     var picking by remember { mutableStateOf(false) }
+    val voiceToggle = rememberVoiceToggle(vm.voice)
 
     val notifLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
     LaunchedEffect(Unit) {
@@ -209,7 +211,7 @@ fun HomeScreen(
                 title = stringResource(if (listening) R.string.listening else R.string.voice_billing),
                 subtitle = partial.ifBlank { stringResource(R.string.voice_hint) },
                 listening = listening,
-                onClick = vm.voice::toggle,
+                onClick = voiceToggle,
                 icon = if (listening) Icons.Filled.Stop else Icons.Outlined.Mic,
             )
             Spacer(Modifier.height(12.dp))

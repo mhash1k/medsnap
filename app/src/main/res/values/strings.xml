@@ -230,7 +230,7 @@
     <string name="voice_err_network">Voice needs internet or the offline speech pack.</string>
     <string name="voice_err_nomatch">Didn\'t hear anything. Try again.</string>
     <string name="voice_err_permission">Microphone permission is needed.</string>
-    <string name="voice_err_unavailable">Speech recognition is not available on this phone.</string>
+    <string name="voice_err_unavailable">Voice is not available on this phone. Install or update the Google app, then try again.</string>
     <string name="voice_hint">Say e.g. \"Napa duita, Seclo ek pata\"</string>
     <string name="voice_new_draft">Started draft #%1$s</string>
     <string name="voice_not_in_bill">%1$s is not in this bill</string>
@@ -319,4 +319,11 @@
     <string name="view_all">View all</string>
     <string name="voice_add">Voice</string>
     <string name="voice_billing">Voice billing</string>
+    <string name="phone_err_01">Number must start with 01</string>
+    <string name="phone_err_operator">Third digit must be 3 to 9 (013 to 019)</string>
+    <string name="phone_hint">11-digit mobile number, e.g. 01712345678</string>
+    <string name="phone_ok">Valid Bangladeshi number</string>
+    <string name="upload_failed">Could not open that photo. Try another one.</string>
+    <string name="upload_photo">Upload</string>
+    <string name="which_medicine">Which medicine is this? Tap the right one</string>
 </resources>

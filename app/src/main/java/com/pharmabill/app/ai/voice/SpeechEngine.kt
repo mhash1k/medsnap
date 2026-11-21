@@ -1,11 +1,15 @@
 package com.pharmabill.app.ai.voice
 
+import android.content.ComponentName
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.speech.RecognitionListener
+import android.speech.RecognitionService
 import android.speech.RecognitionSupport
 import android.speech.RecognitionSupportCallback
 import android.speech.RecognizerIntent
@@ -45,22 +49,64 @@ class SpeechEngine @Inject constructor(@ApplicationContext private val context: 
 
     fun isAvailable(): Boolean = SpeechRecognizer.isRecognitionAvailable(context)
 
-    private fun intent(lang: String) = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-        putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-        putExtra(RecognizerIntent.EXTRA_LANGUAGE, lang)
-        putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5)
-        putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
-        putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
+    /** True when the phone has a working internet connection right now. */
+    fun isOnline(): Boolean {
+        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager ?: return false
+        val caps = cm.getNetworkCapabilities(cm.activeNetwork) ?: return false
+        return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 
-    /** Must be collected on the main thread. */
+    /**
+     * Prefer Google's recognition service when it is installed: many phones (Samsung, Xiaomi, ...) ship a
+     * different default service that does not handle Bangla or fails silently.
+     */
+    private fun preferredService(): ComponentName? = runCatching {
+        val services = context.packageManager.queryIntentServices(Intent(RecognitionService.SERVICE_INTERFACE), 0)
+            .mapNotNull { it.serviceInfo }
+        val google = services.firstOrNull { it.packageName == GOOGLE_APP } ?: services.firstOrNull { it.packageName.startsWith("com.google.android") }
+        google?.let { ComponentName(it.packageName, it.name) }
+    }.getOrNull()
+
+    /** Intent for the system "Speak now" dialog, the last fallback when the in-app recognizer cannot start. */
+    fun systemDialogIntent(lang: String = LANG_BN): Intent? {
+        val i = intent(lang, online = true).apply { removeExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS) }
+        return if (i.resolveActivity(context.packageManager) != null) i else null
+    }
+
+    private fun intent(lang: String, online: Boolean) = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+        putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+        putExtra(RecognizerIntent.EXTRA_LANGUAGE, lang)
+        putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, lang)
+        putExtra(RecognizerIntent.EXTRA_ONLY_RETURN_LANGUAGE_PREFERENCE, false)
+        putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5)
+        // Forcing offline made recognition fail on phones without the Bangla offline pack, even with internet.
+        putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, !online)
+        putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
+        putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, context.packageName)
+        putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 1500L)
+        putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 1500L)
+    }
+
+    /**
+     * Must be collected on the main thread. Tries, in order: Google service in Bangla, then English if Bangla is
+     * missing, then the phone's default service; a fresh recognizer is retried once on busy/client/server errors.
+     * Emits [SpeechEvent.Error] with [ERROR_USE_SYSTEM_DIALOG] when only the system dialog is left.
+     */
     fun listen(primary: String = LANG_BN): Flow<SpeechEvent> = callbackFlow {
         var recognizer: SpeechRecognizer? = null
         var lang = primary
+        var useGoogle = preferredService() != null
+        var retries = 0
+        val online = isOnline()
 
         fun start() {
             recognizer?.destroy()
-            val r = SpeechRecognizer.createSpeechRecognizer(context)
+            val service = if (useGoogle) preferredService() else null
+            val r = try {
+                if (service != null) SpeechRecognizer.createSpeechRecognizer(context, service) else SpeechRecognizer.createSpeechRecognizer(context)
+            } catch (e: Exception) {
+                trySend(SpeechEvent.Error(ERROR_USE_SYSTEM_DIALOG)); close(); return
+            }
             recognizer = r
             r.setRecognitionListener(object : RecognitionListener {
                 override fun onReadyForSpeech(params: Bundle?) { trySend(SpeechEvent.Ready) }
@@ -70,29 +116,35 @@ class SpeechEngine @Inject constructor(@ApplicationContext private val context: 
                 override fun onEndOfSpeech() {}
                 override fun onError(error: Int) {
                     val languageProblem = error == ERROR_LANGUAGE_NOT_SUPPORTED || error == ERROR_LANGUAGE_UNAVAILABLE
-                    if (languageProblem && lang != LANG_EN) {
-                        lang = LANG_EN
-                        start()
-                    } else {
-                        trySend(SpeechEvent.Error(error))
-                        close()
+                    val transient = error == SpeechRecognizer.ERROR_CLIENT || error == SpeechRecognizer.ERROR_RECOGNIZER_BUSY ||
+                        error == SpeechRecognizer.ERROR_SERVER || error == ERROR_SERVER_DISCONNECTED || error == ERROR_TOO_MANY_REQUESTS
+                    when {
+                        languageProblem && lang != LANG_EN -> { lang = LANG_EN; start() }
+                        transient && retries == 0 -> { retries++; start() }
+                        (transient || languageProblem) && useGoogle -> { useGoogle = false; retries = 0; lang = primary; start() }
+                        transient || languageProblem -> { trySend(SpeechEvent.Error(ERROR_USE_SYSTEM_DIALOG)); close() }
+                        else -> { trySend(SpeechEvent.Error(error)); close() }
                     }
                 }
                 override fun onResults(results: Bundle?) {
                     val list = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION).orEmpty()
-                    trySend(SpeechEvent.Results(list, lang))
+                    if (list.isEmpty()) trySend(SpeechEvent.Error(SpeechRecognizer.ERROR_NO_MATCH)) else trySend(SpeechEvent.Results(list, lang))
                     close()
                 }
                 override fun onPartialResults(partialResults: Bundle?) {
-                    partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull()?.let { trySend(SpeechEvent.Partial(it)) }
+                    partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull()?.takeIf { it.isNotBlank() }?.let { trySend(SpeechEvent.Partial(it)) }
                 }
                 override fun onEvent(eventType: Int, params: Bundle?) {}
             })
-            r.startListening(intent(lang))
+            try {
+                r.startListening(intent(lang, online))
+            } catch (e: Exception) {
+                trySend(SpeechEvent.Error(ERROR_USE_SYSTEM_DIALOG)); close()
+            }
         }
 
-        if (!SpeechRecognizer.isRecognitionAvailable(context)) {
-            trySend(SpeechEvent.Error(SpeechRecognizer.ERROR_CLIENT))
+        if (!SpeechRecognizer.isRecognitionAvailable(context) && preferredService() == null) {
+            trySend(SpeechEvent.Error(ERROR_USE_SYSTEM_DIALOG))
             close()
         } else start()
 
@@ -116,7 +168,7 @@ class SpeechEngine @Inject constructor(@ApplicationContext private val context: 
     private suspend fun checkSupport(lang: String): RecognitionSupport? = suspendCancellableCoroutine { cont ->
         val r = SpeechRecognizer.createSpeechRecognizer(context)
         try {
-            r.checkRecognitionSupport(intent(lang), ContextCompat.getMainExecutor(context), object : RecognitionSupportCallback {
+            r.checkRecognitionSupport(intent(lang, online = false), ContextCompat.getMainExecutor(context), object : RecognitionSupportCallback {
                 override fun onSupportResult(recognitionSupport: RecognitionSupport) {
                     r.destroy()
                     if (cont.isActive) cont.resume(recognitionSupport)
@@ -137,7 +189,7 @@ class SpeechEngine @Inject constructor(@ApplicationContext private val context: 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             try {
                 val r = SpeechRecognizer.createSpeechRecognizer(context)
-                r.triggerModelDownload(intent(LANG_BN))
+                r.triggerModelDownload(intent(LANG_BN, online = false))
                 r.destroy()
                 return null
             } catch (_: Exception) {
@@ -151,6 +203,11 @@ class SpeechEngine @Inject constructor(@ApplicationContext private val context: 
         const val LANG_EN = "en-US"
         const val ERROR_LANGUAGE_NOT_SUPPORTED = 12
         const val ERROR_LANGUAGE_UNAVAILABLE = 13
+        const val ERROR_TOO_MANY_REQUESTS = 10
+        const val ERROR_SERVER_DISCONNECTED = 11
+        /** Our own code: the in-app recognizer cannot work on this phone, open the system voice dialog instead. */
+        const val ERROR_USE_SYSTEM_DIALOG = 1001
+        const val GOOGLE_APP = "com.google.android.googlequicksearchbox"
     }
 }
 

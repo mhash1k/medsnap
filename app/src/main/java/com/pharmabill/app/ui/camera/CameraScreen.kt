@@ -6,7 +6,17 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Matrix
+import android.media.ExifInterface
+import android.net.Uri
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.outlined.PhotoLibrary
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
@@ -131,6 +141,65 @@ private fun saveCapture(context: Context, image: ImageProxy): String {
     return file.absolutePath
 }
 
+/**
+ * Copies a photo picked from the gallery into the app's scans folder as an upright JPEG
+ * (EXIF rotation applied, long side at most 2400 px), so it goes through exactly the same scan as a camera shot.
+ */
+private fun importPicked(context: Context, uri: Uri): String? = runCatching {
+    val cr = context.contentResolver
+    val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+    cr.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) }
+    var sample = 1
+    while (maxOf(bounds.outWidth, bounds.outHeight) / sample > 2400) sample *= 2
+    var bmp = cr.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, BitmapFactory.Options().apply { inSampleSize = sample }) }
+        ?: return@runCatching null
+    val rotation = cr.openInputStream(uri)?.use {
+        when (ExifInterface(it).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)) {
+            ExifInterface.ORIENTATION_ROTATE_90 -> 90
+            ExifInterface.ORIENTATION_ROTATE_180 -> 180
+            ExifInterface.ORIENTATION_ROTATE_270 -> 270
+            else -> 0
+        }
+    } ?: 0
+    if (rotation != 0) {
+        val m = Matrix().apply { postRotate(rotation.toFloat()) }
+        bmp = Bitmap.createBitmap(bmp, 0, 0, bmp.width, bmp.height, m, true)
+    }
+    val dir = File(context.filesDir, "scans").apply { mkdirs() }
+    val file = File(dir, "upload_${System.currentTimeMillis()}.jpg")
+    file.outputStream().use { bmp.compress(Bitmap.CompressFormat.JPEG, 92, it) }
+    bmp.recycle()
+    file.absolutePath
+}.getOrNull()
+
+/** Launcher for the system photo picker (no storage permission needed). */
+@Composable
+private fun rememberGalleryPicker(onPicked: (String) -> Unit, onBusy: (Boolean) -> Unit, onError: () -> Unit): () -> Unit {
+    val ctx = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri != null) {
+            onBusy(true)
+            scope.launch {
+                val path = withContext(Dispatchers.IO) { importPicked(ctx, uri) }
+                onBusy(false)
+                if (path != null) onPicked(path) else onError()
+            }
+        }
+    }
+    return { launcher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }
+}
+
+@Composable
+private fun GalleryButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        Surface(onClick = onClick, shape = RoundedCornerShape(16.dp), color = Color.White.copy(alpha = 0.18f), modifier = Modifier.size(56.dp)) {
+            Box(contentAlignment = Alignment.Center) { Icon(Icons.Outlined.PhotoLibrary, null, tint = Color.White, modifier = Modifier.size(26.dp)) }
+        }
+        Text(stringResource(R.string.upload_photo), color = Color.White, fontSize = 11.sp, modifier = Modifier.padding(top = 4.dp))
+    }
+}
+
 @Composable
 fun CameraScreen(onCaptured: (String) -> Unit, onBack: () -> Unit, vm: CameraViewModel = hiltViewModel()) {
     val ctx = LocalContext.current
@@ -140,9 +209,14 @@ fun CameraScreen(onCaptured: (String) -> Unit, onBack: () -> Unit, vm: CameraVie
 
     Box(Modifier.fillMaxSize().background(Color.Black)) {
         if (granted) CameraContent(vm, onCaptured) else {
-            Column(Modifier.align(Alignment.Center).padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            var importing by remember { mutableStateOf(false) }
+            var failed by remember { mutableStateOf(false) }
+            val pick = rememberGalleryPicker(onCaptured, { importing = it }, { failed = true })
+            Column(Modifier.align(Alignment.Center).padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(stringResource(R.string.camera_permission), color = Color.White)
                 Button(shape = PbBtnShape, onClick = { launcher.launch(Manifest.permission.CAMERA) }) { Text(stringResource(R.string.grant)) }
+                if (importing) CircularProgressIndicator(color = Color.White) else GalleryButton(pick)
+                if (failed) Warning(stringResource(R.string.upload_failed))
             }
         }
         IconButton(onClick = onBack, modifier = Modifier.padding(8.dp).background(Color.Black.copy(alpha = 0.4f), CircleShape)) {
@@ -164,6 +238,7 @@ private fun CameraContent(vm: CameraViewModel, onCaptured: (String) -> Unit) {
         ImageCapture.Builder().setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY).build()
     }
     val worker = remember { Executors.newSingleThreadExecutor() }
+    val pickFromGallery = rememberGalleryPicker(onCaptured, { busy = it }, { error = true })
 
     DisposableEffect(lifecycleOwner) {
         val future = ProcessCameraProvider.getInstance(ctx)
@@ -209,32 +284,36 @@ private fun CameraContent(vm: CameraViewModel, onCaptured: (String) -> Unit) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 FilterChip(selected = oneMedicine, onClick = vm::toggleOneMedicine, label = { Text(stringResource(R.string.one_medicine_mode), color = Color.White) })
             }
-            Surface(
-                onClick = {
-                    if (!busy) {
-                    busy = true
-                    imageCapture.takePicture(worker, object : ImageCapture.OnImageCapturedCallback() {
-                        override fun onCaptureSuccess(image: ImageProxy) {
-                            val path = runCatching { saveCapture(ctx, image) }.getOrNull()
-                            ContextCompat.getMainExecutor(ctx).execute {
-                                busy = false
-                                if (path != null) onCaptured(path) else error = true
+            Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.weight(1f), contentAlignment = Alignment.Center) { GalleryButton(pickFromGallery) }
+                Surface(
+                    onClick = {
+                        if (!busy) {
+                        busy = true
+                        imageCapture.takePicture(worker, object : ImageCapture.OnImageCapturedCallback() {
+                            override fun onCaptureSuccess(image: ImageProxy) {
+                                val path = runCatching { saveCapture(ctx, image) }.getOrNull()
+                                ContextCompat.getMainExecutor(ctx).execute {
+                                    busy = false
+                                    if (path != null) onCaptured(path) else error = true
+                                }
                             }
-                        }
 
-                        override fun onError(exception: ImageCaptureException) {
-                            ContextCompat.getMainExecutor(ctx).execute { busy = false; error = true }
+                            override fun onError(exception: ImageCaptureException) {
+                                ContextCompat.getMainExecutor(ctx).execute { busy = false; error = true }
+                            }
+                        })
                         }
-                    })
+                    },
+                    shape = CircleShape,
+                    color = Color.White,
+                    modifier = Modifier.size(84.dp),
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        if (busy) CircularProgressIndicator() else Text(stringResource(R.string.shutter), style = MaterialTheme.typography.labelLarge, color = Color.Black)
                     }
-                },
-                shape = CircleShape,
-                color = Color.White,
-                modifier = Modifier.padding(top = 8.dp).size(84.dp),
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    if (busy) CircularProgressIndicator() else Text(stringResource(R.string.shutter), style = MaterialTheme.typography.labelLarge, color = Color.Black)
                 }
+                Box(Modifier.weight(1f))
             }
         }
     }
